@@ -61,9 +61,10 @@
       padding: 0.4rem 0.55rem; text-align: center; white-space: nowrap;
     }
 
-    thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 5; background: #f1f5f9; font-weight: 600; color: #334155; }
-    thead tr:nth-child(2) th { position: sticky; top: 32px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
-    thead tr:nth-child(3) th { position: sticky; top: 62px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
+    /* Sticky columns & header rows adjusted for two-line header height */
+    thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 5; background: #f1f5f9; font-weight: 600; color: #334155; padding: 0.35rem 0.45rem; }
+    thead tr:nth-child(2) th { position: sticky; top: 58px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
+    thead tr:nth-child(3) th { position: sticky; top: 88px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
 
     .col-student {
       position: sticky; left: 0; z-index: 3; background: var(--surface); text-align: left;
@@ -74,6 +75,15 @@
     .col-summary { background: #f8fafc; font-weight: 600; min-width: 80px; }
     thead th.col-summary { background: #e2e8f0; }
 
+    /* Header Two-Line Container */
+    .header-cell-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      min-width: 110px;
+    }
+
     input.cell-input {
       width: 100%; min-width: 65px; max-width: 95px; text-align: center; border: 1px solid transparent;
       background: transparent; font-size: 0.825rem; padding: 0.25rem; border-radius: 4px;
@@ -81,14 +91,44 @@
     input.cell-input:hover { border-color: #cbd5e1; background: #fff; }
     input.cell-input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 2px rgba(2,132,199,0.2); }
 
+    input.header-title-input {
+      width: 100%;
+      font-weight: 700;
+      text-align: center;
+      border: 1px solid transparent;
+      background: transparent;
+      font-size: 0.825rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    input.header-title-input:hover { border-color: #cbd5e1; background: #fff; }
+    input.header-title-input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 2px rgba(2,132,199,0.2); }
+
     input.weight-input {
       width: 48px; text-align: center; font-size: 0.75rem; font-weight: bold;
       border: 1px solid #7dd3fc; border-radius: 4px; padding: 2px 4px; background: #fff; color: #0369a1;
     }
 
-    .col-actions { display: inline-flex; align-items: center; gap: 2px; }
-    .btn-col-action { background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 1px 3px; border-radius: 3px; }
-    .btn-col-action:hover { background: #cbd5e1; }
+    .col-actions { 
+      display: inline-flex; 
+      align-items: center; 
+      justify-content: center;
+      gap: 3px; 
+    }
+    .btn-col-action { 
+      background: none; 
+      border: none; 
+      cursor: pointer; 
+      font-size: 0.75rem; 
+      padding: 1px 4px; 
+      border-radius: 3px; 
+      opacity: 0.75;
+      transition: all 0.15s ease;
+    }
+    .btn-col-action:hover { 
+      background: #cbd5e1; 
+      opacity: 1; 
+    }
 
     .badge-letter { display: inline-block; padding: 0.2rem 0.45rem; border-radius: 4px; font-weight: 700; background: #dbeafe; color: #1e40af; font-size: 0.8rem; }
     .badge-level { display: inline-block; padding: 0.2rem 0.45rem; border-radius: 4px; font-weight: 700; background: #dcfce7; color: #15803d; font-size: 0.8rem; }
@@ -152,7 +192,7 @@
           </span>
         </div>
         <span style="color: var(--text-muted);">
-          <b>Controls:</b> ➕ Insert next to assessment | 📋 Paste Column | 🧹 Clear Column | 🗑️ Delete | <b>Ctrl+V</b> to fill down
+          <b>Shortcuts:</b> 📋 Paste Column | 🧹 Clear Column | 🗑️ Delete | <b>Ctrl+V</b> to fill down
         </span>
       </div>
     </div>
@@ -452,24 +492,25 @@
       const trWeights = document.getElementById('rowWeights');
       const tbody = document.getElementById('tableBody');
 
+      // 1. Assessment Names Row (Stacked: Name on top line, Functions on second line)
       let hHtml = `<th class="col-student">Student Name</th>`;
       activeColumns.forEach((col, idx) => {
         hHtml += `<th>
-          <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
-            <input class="cell-input" style="font-weight:700; max-width:85px;" value="${col.name}" 
+          <div class="header-cell-stack">
+            <input class="header-title-input" value="${col.name}" 
               onchange="activeColumns[${idx}].name = this.value; triggerAutoSave();" />
             <div class="col-actions">
-              <button class="btn-col-action" title="Insert new assessment after this one" onclick="insertColumnAt(${idx + 1})">➕</button>
-              <button class="btn-col-action" title="Paste column from Google Classroom" onclick="promptPasteColumn(${idx})">📋</button>
-              <button class="btn-col-action" title="Clear marks in column" onclick="clearColumn(${idx})">🧹</button>
-              <button class="btn-col-action" title="Delete column" onclick="removeColumn(${idx})">🗑️</button>
+              <button class="btn-col-action" title="Paste column from Google Classroom" onclick="promptPasteColumn(${idx})">📋 Paste</button>
+              <button class="btn-col-action" title="Clear marks in column" onclick="clearColumn(${idx})">🧹 Clear</button>
+              <button class="btn-col-action" title="Delete column" onclick="removeColumn(${idx})">🗑️ Delete</button>
             </div>
           </div>
         </th>`;
       });
-      hHtml += `<th class="col-summary">Weighted Avg</th><th class="col-summary">Letter Grade</th><th class="col-summary">Ontario Level</th><th style="width:65px;">Action</th>`;
+      hHtml += `<th class="col-summary">Weighted Avg</th><th class="col-summary">Letter Grade</th><th class="col-summary">Ontario Level</th><th style="width:50px;">Action</th>`;
       trHeaders.innerHTML = hHtml;
 
+      // 2. Denominators / Out Of Row
       let mHtml = `<th class="col-student" style="font-size:0.75rem; color:var(--text-muted);">OUT OF / TOTAL</th>`;
       activeColumns.forEach((col, idx) => {
         mHtml += `<th>
@@ -480,6 +521,7 @@
       mHtml += `<th class="col-summary">100%</th><th class="col-summary">Scale</th><th class="col-summary">Max 4</th><th></th>`;
       trMax.innerHTML = mHtml;
 
+      // 3. Weighting Row
       let wHtml = `<th class="col-student" style="font-size:0.75rem; color:#0369a1;">WEIGHTING (%)</th>`;
       activeColumns.forEach((col, idx) => {
         wHtml += `<th>
@@ -490,6 +532,7 @@
       wHtml += `<th class="col-summary" id="weightSummaryCell"></th><th class="col-summary"></th><th class="col-summary"></th><th></th>`;
       trWeights.innerHTML = wHtml;
 
+      // 4. Student Rows
       tbody.innerHTML = '';
       activeStudents.forEach((student, sIdx) => {
         const tr = document.createElement('tr');
@@ -525,7 +568,6 @@
         <td class="col-summary" id="badge-${sIdx}">-</td>
         <td class="col-summary" id="level-${sIdx}">-</td>
         <td>
-          <button class="btn-col-action" title="Insert new student below" onclick="insertStudentAt(${sIdx + 1})">➕</button>
           <button class="btn-col-action" title="Remove student" onclick="removeStudent(${sIdx})" style="color:#ef4444;">🗑️</button>
         </td>
       `;
@@ -683,7 +725,7 @@
       triggerAutoSave();
     }
 
-    // Top toolbar button: asks user which row position to insert at
+    // Top toolbar button: prompts for student name and row position
     function addStudent() {
       const name = prompt("Enter student name (e.g. 'Lastname; Firstname'):");
       if (!name) return;
@@ -702,17 +744,6 @@
         }
       }
 
-      insertStudentAt(insertIdx, name);
-    }
-
-    // Helper: inserts a student into specific index using splice
-    function insertStudentAt(insertIdx, prefilledName = null) {
-      let name = prefilledName;
-      if (!name) {
-        name = prompt("Enter student name (e.g. 'Lastname; Firstname'):");
-        if (!name) return;
-      }
-
       const emptyMarks = new Array(activeColumns.length).fill('');
       activeStudents.splice(insertIdx, 0, { name: name, marks: emptyMarks });
       renderTable();
@@ -727,7 +758,7 @@
       }
     }
 
-    // Top toolbar button: asks user which column position to insert at
+    // Top toolbar button: prompts for assessment title, out of score, and column position
     function addColumn() {
       const title = prompt("Enter assessment or test title:", "New Test");
       if (!title) return;
@@ -747,31 +778,9 @@
         }
       }
 
-      insertColumnAt(insertIdx, { title, maxVal });
-    }
-
-    // Helper: inserts an assessment into specific column index using splice
-    function insertColumnAt(insertIdx, prefilled = null) {
-      let title = prefilled ? prefilled.title : null;
-      let maxVal = prefilled ? prefilled.maxVal : null;
-
-      if (!title) {
-        title = prompt("Enter assessment or test title:", "New Test");
-        if (!title) return;
-      }
-      if (maxVal === null) {
-        maxVal = parseFloat(prompt("Enter total marks it is out of (enter 4 for Ontario Levels):", "4")) || 4;
-      }
-
       const newColumn = { name: title, max: maxVal, weight: 10 };
-
-      // Insert column in activeColumns
       activeColumns.splice(insertIdx, 0, newColumn);
-
-      // Insert empty mark in every student's array at that column index
-      activeStudents.forEach(st => {
-        st.marks.splice(insertIdx, 0, '');
-      });
+      activeStudents.forEach(st => st.marks.splice(insertIdx, 0, ''));
 
       renderTable();
       triggerAutoSave();
