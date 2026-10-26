@@ -587,7 +587,14 @@
       for (let c = 1; c < endColIndex; c++) {
         const colTitle = headerNames[c] || `Test ${c}`;
         const maxVal = parseFloat((maxScores[c] || '').toString().replace(/[^0-9.]/g, '')) || 4;
-        const weightVal = parseFloat((weightRow[c] || '').toString().replace(/[^0-9.]/g, '')) || 10;
+        let rawWeightStr = (weightRow[c] || '').toString().trim();
+let weightVal = parseFloat(rawWeightStr.replace(/[^0-9.]/g, ''));
+if (isNaN(weightVal)) {
+  weightVal = 10;
+} else if (weightVal > 0 && weightVal < 1) {
+  // If Google Sheets stored 5% as 0.05, convert back to 5
+  weightVal = Math.round(weightVal * 100);
+} '')) || 10;
         newCols.push({ name: colTitle, max: maxVal, weight: weightVal });
       }
 
