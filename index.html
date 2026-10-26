@@ -156,26 +156,42 @@
       </div>
       <div class="weight-total-bar">
         <span><b>Total Active Weight:</b> <span id="weightSum">100%</span></span>
-        <span style="color: var(--text-muted);">Max grade is 4. Supports raw marks, percentages, or levels (4, 4-, 3+, 3, etc.)</span>
+        <span style="color: var(--text-muted);">Thresholds: 4 (95%+), 4- (90%+), 3+ (85%+), 3 (75–84.99%). Columns /4 accept levels or numeric scores.</span>
       </div>
     </div>
   </div>
 
   <script>
-    // Input Level parsing: any input 4 or 4+ maps to 90%
+    // Exact requested percentages for Level conversion
     const LEVEL_MAP = {
-      '4+': 90, '4': 87, '4-': 80, '4/4-': 83.5, '4-/3+': 79,
-      '3+': 78, '3': 75, '3-': 70, '3+/3': 76.5, '3/3+': 76.5, '3-/2+': 68.5,
-      '2+': 67, '2': 64, '2-': 60, '2/2+': 62,
-      '1+': 57, '1': 54, '1-': 50,
-      'R': 35, '0': 0
+      '4+': 95,
+      '4': 95,
+      '4-': 90,
+      '4/4-': 92.5,
+      '4-/3+': 87.5,
+      '3+/4-': 87.5,
+      '3+': 85,
+      '3': 80, // Midpoint of 75-84.99%
+      '3/3+': 82.5,
+      '3+/3': 82.5,
+      '3-': 72,
+      '3-/2+': 69.5,
+      '2+': 67,
+      '2': 64,
+      '2-': 60,
+      '2/2+': 62,
+      '1+': 57,
+      '1': 54,
+      '1-': 50,
+      'R': 35,
+      '0': 0
     };
 
-    // Letter grade scale (Highest grade is A, no A+)
+    // Letter grade scale matching requested bands (Max grade is A)
     function getLetterGrade(pct) {
-      if (pct >= 87) return 'A';
-      if (pct >= 80) return 'A-';
-      if (pct >= 78) return 'B+';
+      if (pct >= 95) return 'A';
+      if (pct >= 90) return 'A-';
+      if (pct >= 85) return 'B+';
       if (pct >= 75) return 'B';
       if (pct >= 70) return 'B-';
       if (pct >= 67) return 'C+';
@@ -187,12 +203,12 @@
       return 'F';
     }
 
-    // Ontario Achievement Level: Highest level is 4 (no 4+)
+    // Ontario Achievement Level conversion using your custom bands (No 4+)
     function getOntarioLevel(pct) {
-      if (pct >= 87) return '4';
-      if (pct >= 80) return '4-';
-      if (pct >= 77) return '3+';
-      if (pct >= 73) return '3';
+      if (pct >= 95) return '4';
+      if (pct >= 90) return '4-';
+      if (pct >= 85) return '3+';
+      if (pct >= 75) return '3';
       if (pct >= 70) return '3-';
       if (pct >= 67) return '2+';
       if (pct >= 63) return '2';
@@ -380,7 +396,6 @@
 
       activeColumns = JSON.parse(JSON.stringify(cls.columns));
       
-      // Normalize students: allow array of strings or objects with marks
       activeStudents = cls.students.map(st => {
         if (typeof st === 'string') {
           return { name: st, marks: new Array(activeColumns.length).fill('') };
@@ -477,11 +492,23 @@
     function parseToPercent(markVal, outOf) {
       if (!markVal || markVal === 'x' || markVal === '-') return null;
 
-      if (LEVEL_MAP[markVal] !== undefined) {
-        return LEVEL_MAP[markVal];
+      const trimmed = markVal.toString().trim();
+
+      // Check if mark matches a known Ontario Level (e.g. 4, 4-, 3+, 3+/4-)
+      if (LEVEL_MAP[trimmed] !== undefined) {
+        return LEVEL_MAP[trimmed];
       }
 
-      const numeric = parseFloat(markVal);
+      // If out of 4 and teacher entered whole numbers (e.g. 4 -> Level 4, 3 -> Level 3)
+      if (outOf === 4) {
+        if (trimmed === '4') return LEVEL_MAP['4'];
+        if (trimmed === '3') return LEVEL_MAP['3'];
+        if (trimmed === '2') return LEVEL_MAP['2'];
+        if (trimmed === '1') return LEVEL_MAP['1'];
+        if (trimmed === '0') return 0;
+      }
+
+      const numeric = parseFloat(trimmed);
       if (isNaN(numeric)) return null;
 
       if (outOf && outOf > 0) {
@@ -559,7 +586,7 @@
     function addColumn() {
       const title = prompt("Enter assessment or test title:", "New Test");
       if (!title) return;
-      const maxVal = parseFloat(prompt("Enter total marks it is out of:", "20")) || 20;
+      const maxVal = parseFloat(prompt("Enter total marks it is out of (enter 4 for Ontario Levels):", "4")) || 4;
       activeColumns.push({ name: title, max: maxVal, weight: 10 });
       activeStudents.forEach(st => st.marks.push(''));
       renderTable();
