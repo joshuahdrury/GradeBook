@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher Gradebook - Cloud Sync & Persistence</title>
+  <title>Teacher Gradebook - Cloud Sync & Position Insertion</title>
   <style>
     :root {
       --primary: #1e40af;
@@ -152,7 +152,7 @@
           </span>
         </div>
         <span style="color: var(--text-muted);">
-          <b>Shortcuts:</b> 📋 Paste Column | 🧹 Clear Column | <b>Ctrl+V</b> on any cell to bulk fill down
+          <b>Controls:</b> ➕ Insert next to assessment | 📋 Paste Column | 🧹 Clear Column | 🗑️ Delete | <b>Ctrl+V</b> to fill down
         </span>
       </div>
     </div>
@@ -307,7 +307,6 @@
     }
 
     function triggerAutoSave() {
-      // Save locally immediately as a failsafe
       persistLocal();
       setStatus('● Typing... (pending sync)', 'status-saving');
       clearTimeout(saveTimeout);
@@ -370,9 +369,7 @@
       loadClass(classKey);
     }
 
-    // Fetches live saved data from Google Sheets, with local storage fallback
     async function loadClass(classKey) {
-      // 1. Try local storage cache for instant render
       const localData = localStorage.getItem(`gradebook_${classKey}`);
       if (localData) {
         try {
@@ -382,7 +379,6 @@
           renderTable();
         } catch (e) { console.error('Local cache parse error:', e); }
       } else {
-        // Fallback to default structure
         const cls = DEFAULT_CLASSES[classKey];
         activeColumns = JSON.parse(JSON.stringify(cls.columns));
         activeStudents = cls.students.map(st => {
@@ -397,7 +393,6 @@
         renderTable();
       }
 
-      // 2. Fetch fresh ground-truth from Google Sheets in the background
       if (APPS_SCRIPT_URL) {
         setStatus('☁️ Loading from Cloud...', 'status-saving');
         try {
@@ -417,14 +412,12 @@
       }
     }
 
-    // Parses raw Google Sheet rows back into active data structure
     function parseSheetRows(rows) {
       const headerNames = rows[0];
       const maxScores = rows[1];
       const weightRow = rows[2];
 
       const newCols = [];
-      // Column index 0 is 'Student Name', and last 3 are summary columns
       const endColIndex = headerNames.length - 3;
       for (let c = 1; c < endColIndex; c++) {
         const colTitle = headerNames[c] || `Test ${c}`;
@@ -463,17 +456,18 @@
       activeColumns.forEach((col, idx) => {
         hHtml += `<th>
           <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
-            <input class="cell-input" style="font-weight:700; max-width:90px;" value="${col.name}" 
+            <input class="cell-input" style="font-weight:700; max-width:85px;" value="${col.name}" 
               onchange="activeColumns[${idx}].name = this.value; triggerAutoSave();" />
             <div class="col-actions">
+              <button class="btn-col-action" title="Insert new assessment after this one" onclick="insertColumnAt(${idx + 1})">➕</button>
               <button class="btn-col-action" title="Paste column from Google Classroom" onclick="promptPasteColumn(${idx})">📋</button>
-              <button class="btn-col-action" title="Clear all marks in column" onclick="clearColumn(${idx})">🧹</button>
+              <button class="btn-col-action" title="Clear marks in column" onclick="clearColumn(${idx})">🧹</button>
               <button class="btn-col-action" title="Delete column" onclick="removeColumn(${idx})">🗑️</button>
             </div>
           </div>
         </th>`;
       });
-      hHtml += `<th class="col-summary">Weighted Avg</th><th class="col-summary">Letter Grade</th><th class="col-summary">Ontario Level</th><th style="width:40px;">Action</th>`;
+      hHtml += `<th class="col-summary">Weighted Avg</th><th class="col-summary">Letter Grade</th><th class="col-summary">Ontario Level</th><th style="width:65px;">Action</th>`;
       trHeaders.innerHTML = hHtml;
 
       let mHtml = `<th class="col-student" style="font-size:0.75rem; color:var(--text-muted);">OUT OF / TOTAL</th>`;
@@ -530,7 +524,10 @@
         <td class="col-summary" id="avg-${sIdx}">-</td>
         <td class="col-summary" id="badge-${sIdx}">-</td>
         <td class="col-summary" id="level-${sIdx}">-</td>
-        <td><button onclick="removeStudent(${sIdx})" style="color:#ef4444; border:none; background:transparent; cursor:pointer;">&times;</button></td>
+        <td>
+          <button class="btn-col-action" title="Insert new student below" onclick="insertStudentAt(${sIdx + 1})">➕</button>
+          <button class="btn-col-action" title="Remove student" onclick="removeStudent(${sIdx})" style="color:#ef4444;">🗑️</button>
+        </td>
       `;
       return html;
     }
@@ -686,10 +683,38 @@
       triggerAutoSave();
     }
 
+    // Top toolbar button: asks user which row position to insert at
     function addStudent() {
       const name = prompt("Enter student name (e.g. 'Lastname; Firstname'):");
       if (!name) return;
-      activeStudents.push({ name: name, marks: new Array(activeColumns.length).fill('') });
+
+      const maxPos = activeStudents.length + 1;
+      const posInput = prompt(
+        `Insert at which row position? (1 to ${maxPos})\nLeave blank or press Enter to add to the end:`,
+        maxPos
+      );
+
+      let insertIdx = activeStudents.length;
+      if (posInput !== null && posInput.trim() !== '') {
+        const parsed = parseInt(posInput.trim(), 10);
+        if (!isNaN(parsed) && parsed >= 1) {
+          insertIdx = Math.min(Math.max(parsed - 1, 0), activeStudents.length);
+        }
+      }
+
+      insertStudentAt(insertIdx, name);
+    }
+
+    // Helper: inserts a student into specific index using splice
+    function insertStudentAt(insertIdx, prefilledName = null) {
+      let name = prefilledName;
+      if (!name) {
+        name = prompt("Enter student name (e.g. 'Lastname; Firstname'):");
+        if (!name) return;
+      }
+
+      const emptyMarks = new Array(activeColumns.length).fill('');
+      activeStudents.splice(insertIdx, 0, { name: name, marks: emptyMarks });
       renderTable();
       triggerAutoSave();
     }
@@ -702,12 +727,52 @@
       }
     }
 
+    // Top toolbar button: asks user which column position to insert at
     function addColumn() {
       const title = prompt("Enter assessment or test title:", "New Test");
       if (!title) return;
       const maxVal = parseFloat(prompt("Enter total marks it is out of (enter 4 for Ontario Levels):", "4")) || 4;
-      activeColumns.push({ name: title, max: maxVal, weight: 10 });
-      activeStudents.forEach(st => st.marks.push(''));
+
+      const maxPos = activeColumns.length + 1;
+      const posInput = prompt(
+        `Insert at which column position? (1 to ${maxPos})\nLeave blank or press Enter to add to the end:`,
+        maxPos
+      );
+
+      let insertIdx = activeColumns.length;
+      if (posInput !== null && posInput.trim() !== '') {
+        const parsed = parseInt(posInput.trim(), 10);
+        if (!isNaN(parsed) && parsed >= 1) {
+          insertIdx = Math.min(Math.max(parsed - 1, 0), activeColumns.length);
+        }
+      }
+
+      insertColumnAt(insertIdx, { title, maxVal });
+    }
+
+    // Helper: inserts an assessment into specific column index using splice
+    function insertColumnAt(insertIdx, prefilled = null) {
+      let title = prefilled ? prefilled.title : null;
+      let maxVal = prefilled ? prefilled.maxVal : null;
+
+      if (!title) {
+        title = prompt("Enter assessment or test title:", "New Test");
+        if (!title) return;
+      }
+      if (maxVal === null) {
+        maxVal = parseFloat(prompt("Enter total marks it is out of (enter 4 for Ontario Levels):", "4")) || 4;
+      }
+
+      const newColumn = { name: title, max: maxVal, weight: 10 };
+
+      // Insert column in activeColumns
+      activeColumns.splice(insertIdx, 0, newColumn);
+
+      // Insert empty mark in every student's array at that column index
+      activeStudents.forEach(st => {
+        st.marks.splice(insertIdx, 0, '');
+      });
+
       renderTable();
       triggerAutoSave();
     }
@@ -733,7 +798,7 @@
       a.click();
     }
 
-    // Initialize UI
+    // Init UI
     if (APPS_SCRIPT_URL) {
       document.getElementById('scriptUrlInput').value = APPS_SCRIPT_URL;
     }
