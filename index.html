@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher Gradebook - Enhanced Portal</title>
+  <title>Teacher Gradebook - Cloud Sync & Grading Portal</title>
   <style>
     :root {
       --primary: #1e40af;
@@ -61,7 +61,6 @@
       padding: 0.4rem 0.55rem; text-align: center; white-space: nowrap;
     }
 
-    /* Sticky row heights */
     thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 5; background: #f1f5f9; font-weight: 600; color: #334155; padding: 0.35rem 0.45rem; }
     thead tr:nth-child(2) th { position: sticky; top: 58px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
     thead tr:nth-child(3) th { position: sticky; top: 88px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
@@ -73,7 +72,7 @@
     }
     thead th.col-student { z-index: 10; background: #e2e8f0; }
 
-    /* ENTIRE ONTARIO LEVEL COLUMN IS STICKY (Headers + Cells) */
+    /* Sticky floating Ontario Level column */
     .col-floating-level {
       position: sticky; left: 240px; z-index: 3; background: var(--surface);
       min-width: 105px; max-width: 105px; border-right: 2px solid #94a3b8;
@@ -88,7 +87,7 @@
       position: sticky; top: 88px; left: 240px; z-index: 10; background: #bae6fd; border-right: 2px solid #94a3b8;
     }
 
-    /* Rightmost Summary Columns (Non-sticky) */
+    /* Rightmost Summary Columns */
     .col-summary { background: #f8fafc; font-weight: 600; min-width: 80px; }
     thead th.col-summary { background: #e2e8f0; }
 
@@ -134,7 +133,7 @@
     }
     .btn-col-action:hover { background: #cbd5e1; opacity: 1; }
 
-    /* Ontario Level Exact Requested Colors */
+    /* Custom Color Threshold Badges */
     .level-badge {
       display: inline-block; padding: 0.25rem 0.55rem; border-radius: 6px; font-weight: 800; font-size: 0.825rem;
     }
@@ -582,19 +581,20 @@
       const weightRow = rows[2];
 
       const newCols = [];
-      // End before summary columns: Weighted Avg, Letter Grade, Ontario Level, Notes
       const endColIndex = headerNames.length - 4;
       for (let c = 1; c < endColIndex; c++) {
         const colTitle = headerNames[c] || `Test ${c}`;
         const maxVal = parseFloat((maxScores[c] || '').toString().replace(/[^0-9.]/g, '')) || 4;
+
+        // Permanent fix: safely parse decimal and string % weights back to clean integers
         let rawWeightStr = (weightRow[c] || '').toString().trim();
-let weightVal = parseFloat(rawWeightStr.replace(/[^0-9.]/g, ''));
-if (isNaN(weightVal)) {
-  weightVal = 10;
-} else if (weightVal > 0 && weightVal < 1) {
-  // If Google Sheets stored 5% as 0.05, convert back to 5
-  weightVal = Math.round(weightVal * 100);
-} '')) || 10;
+        let weightVal = parseFloat(rawWeightStr.replace(/[^0-9.]/g, ''));
+        if (isNaN(weightVal)) {
+          weightVal = 10;
+        } else if (weightVal > 0 && weightVal < 1) {
+          weightVal = Math.round(weightVal * 100);
+        }
+
         newCols.push({ name: colTitle, max: maxVal, weight: weightVal });
       }
 
@@ -625,7 +625,7 @@ if (isNaN(weightVal)) {
       const trWeights = document.getElementById('rowWeights');
       const tbody = document.getElementById('tableBody');
 
-      // 1. Row 1: Student Name -> Floating Level (Sticky) -> Assessments -> Weighted Avg -> Letter Grade -> Ontario Level (Rightmost) -> Notes
+      // 1. Assessment Header Row
       let hHtml = `
         <th class="col-student">Student Name</th>
         <th class="col-floating-level">Ontario Level</th>
@@ -652,7 +652,7 @@ if (isNaN(weightVal)) {
       `;
       trHeaders.innerHTML = hHtml;
 
-      // 2. Row 2: Out of values (Floating Level header cell is sticky)
+      // 2. Denominators / Out of Row
       let mHtml = `
         <th class="col-student" style="font-size:0.75rem; color:var(--text-muted);">OUT OF / TOTAL</th>
         <th class="col-floating-level" style="font-size:0.75rem; color:var(--text-muted);">Max 4</th>
@@ -672,7 +672,7 @@ if (isNaN(weightVal)) {
       `;
       trMax.innerHTML = mHtml;
 
-      // 3. Row 3: Weightings (Floating Level header cell is sticky)
+      // 3. Weighting Row
       let wHtml = `
         <th class="col-student" style="font-size:0.75rem; color:#0369a1;">WEIGHTING (%)</th>
         <th class="col-floating-level"></th>
@@ -944,13 +944,13 @@ if (isNaN(weightVal)) {
           badgeCell.innerHTML = `<span class="badge-letter">${letter}</span>`;
           
           const badgeHTML = `<span class="level-badge ${colorClass}">${ontarioLevel}</span>`;
-          levelStickyCell.innerHTML = badgeHTML;
-          levelRightCell.innerHTML = badgeHTML;
+          if (levelStickyCell) levelStickyCell.innerHTML = badgeHTML;
+          if (levelRightCell) levelRightCell.innerHTML = badgeHTML;
         } else {
           avgCell.textContent = '-';
           badgeCell.textContent = '-';
-          levelStickyCell.textContent = '-';
-          levelRightCell.textContent = '-';
+          if (levelStickyCell) levelStickyCell.textContent = '-';
+          if (levelRightCell) levelRightCell.textContent = '-';
         }
       });
     }
