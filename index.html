@@ -71,24 +71,31 @@
       position: sticky; left: 0; z-index: 3; background: var(--surface); text-align: left;
       font-weight: 600; min-width: 240px; max-width: 240px;
     }
-    thead th.col-student { z-index: 7; background: #e2e8f0; }
+    thead th.col-student { z-index: 10; background: #e2e8f0; }
 
-    /* Sticky floating Ontario Level column right beside student name */
+    /* ENTIRE ONTARIO LEVEL COLUMN IS STICKY (Headers + Cells) */
     .col-floating-level {
       position: sticky; left: 240px; z-index: 3; background: var(--surface);
-      min-width: 95px; max-width: 95px; border-right: 2px solid #94a3b8;
+      min-width: 105px; max-width: 105px; border-right: 2px solid #94a3b8;
     }
-    thead th.col-floating-level { z-index: 7; background: #e2e8f0; border-right: 2px solid #94a3b8; }
-
-    /* Sticky notes column right after Ontario Level */
-    .col-notes {
-      position: sticky; left: 335px; z-index: 3; background: var(--surface);
-      min-width: 170px; max-width: 200px; border-right: 2px solid #cbd5e1;
+    thead tr:nth-child(1) th.col-floating-level {
+      position: sticky; top: 0; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
     }
-    thead th.col-notes { z-index: 7; background: #e2e8f0; border-right: 2px solid #cbd5e1; }
+    thead tr:nth-child(2) th.col-floating-level {
+      position: sticky; top: 58px; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
+    }
+    thead tr:nth-child(3) th.col-floating-level {
+      position: sticky; top: 88px; left: 240px; z-index: 10; background: #bae6fd; border-right: 2px solid #94a3b8;
+    }
 
+    /* Rightmost Summary Columns (Non-sticky) */
     .col-summary { background: #f8fafc; font-weight: 600; min-width: 80px; }
     thead th.col-summary { background: #e2e8f0; }
+
+    .col-notes-right {
+      background: var(--surface); min-width: 240px; max-width: 320px; text-align: left;
+    }
+    thead th.col-notes-right { background: #e2e8f0; text-align: center; }
 
     .header-cell-stack {
       display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 110px;
@@ -131,15 +138,10 @@
     .level-badge {
       display: inline-block; padding: 0.25rem 0.55rem; border-radius: 6px; font-weight: 800; font-size: 0.825rem;
     }
-    /* Level 4: Blue */
     .level-blue { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
-    /* 4- & 3+: Turquoise / Teal */
     .level-teal { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
-    /* Level 3: Green */
     .level-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-    /* 3- & 2+: Yellow / Amber */
     .level-yellow { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-    /* Level 2 and below: Red */
     .level-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
 
     .badge-letter { display: inline-block; padding: 0.2rem 0.45rem; border-radius: 4px; font-weight: 700; background: #f1f5f9; color: #334155; font-size: 0.8rem; }
@@ -196,7 +198,7 @@
     <header>
       <div>
         <h1>GradeBook Input & Weighting Portal</h1>
-        <p class="subtitle">Cloud auto-sync active. Floating Ontario Level column and At-a-Glance student inspection enabled.</p>
+        <p class="subtitle">Cloud auto-sync active. Floating Ontario Level column locked; rightmost Level and Notes configured.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -339,14 +341,13 @@
       return 'R';
     }
 
-    // Exact requested color coding logic
     function getLevelColorClass(levelStr) {
       if (!levelStr || levelStr === '-') return '';
       if (levelStr === '4') return 'level-blue';
       if (levelStr === '4-' || levelStr === '3+') return 'level-teal';
       if (levelStr === '3') return 'level-green';
       if (levelStr === '3-' || levelStr === '2+') return 'level-yellow';
-      return 'level-red'; // 2, 2-, 1+, 1, 1-, R
+      return 'level-red';
     }
 
     const SCI_7_COLS = [
@@ -496,7 +497,7 @@
           marks: st.marks,
           avg: document.getElementById(`avg-${idx}`) ? document.getElementById(`avg-${idx}`).innerText : '',
           letter: document.getElementById(`badge-${idx}`) ? document.getElementById(`badge-${idx}`).innerText : '',
-          level: document.getElementById(`level-${idx}`) ? document.getElementById(`level-${idx}`).innerText : ''
+          level: document.getElementById(`level-sticky-${idx}`) ? document.getElementById(`level-sticky-${idx}`).innerText : ''
         }))
       };
 
@@ -581,7 +582,8 @@
       const weightRow = rows[2];
 
       const newCols = [];
-      const endColIndex = headerNames.length - 3;
+      // End before summary columns: Weighted Avg, Letter Grade, Ontario Level, Notes
+      const endColIndex = headerNames.length - 4;
       for (let c = 1; c < endColIndex; c++) {
         const colTitle = headerNames[c] || `Test ${c}`;
         const maxVal = parseFloat((maxScores[c] || '').toString().replace(/[^0-9.]/g, '')) || 4;
@@ -599,7 +601,8 @@
         for (let c = 1; c < endColIndex; c++) {
           marks.push(row[c] !== undefined ? row[c].toString().trim() : '');
         }
-        newStudents.push({ name: studentName, notes: '', marks: marks });
+        const notes = row[row.length - 1] !== undefined ? row[row.length - 1].toString().trim() : '';
+        newStudents.push({ name: studentName, notes: notes, marks: marks });
       }
 
       if (newCols.length > 0 && newStudents.length > 0) {
@@ -615,11 +618,10 @@
       const trWeights = document.getElementById('rowWeights');
       const tbody = document.getElementById('tableBody');
 
-      // 1. Row 1: Student Name -> Floating Level -> Notes -> Assessment Columns -> End Summaries
+      // 1. Row 1: Student Name -> Floating Level (Sticky) -> Assessments -> Weighted Avg -> Letter Grade -> Ontario Level (Rightmost) -> Notes
       let hHtml = `
         <th class="col-student">Student Name</th>
         <th class="col-floating-level">Ontario Level</th>
-        <th class="col-notes">Notes & Observations</th>
       `;
       activeColumns.forEach((col, idx) => {
         hHtml += `<th>
@@ -634,14 +636,19 @@
           </div>
         </th>`;
       });
-      hHtml += `<th class="col-summary">Weighted Avg</th><th class="col-summary">Letter Grade</th><th style="width:45px;">Action</th>`;
+      hHtml += `
+        <th class="col-summary">Weighted Avg</th>
+        <th class="col-summary">Letter Grade</th>
+        <th class="col-summary">Ontario Level</th>
+        <th class="col-notes-right">Notes & Observations</th>
+        <th style="width:45px;">Action</th>
+      `;
       trHeaders.innerHTML = hHtml;
 
-      // 2. Row 2: Out of values
+      // 2. Row 2: Out of values (Floating Level header cell is sticky)
       let mHtml = `
         <th class="col-student" style="font-size:0.75rem; color:var(--text-muted);">OUT OF / TOTAL</th>
         <th class="col-floating-level" style="font-size:0.75rem; color:var(--text-muted);">Max 4</th>
-        <th class="col-notes" style="font-size:0.75rem; color:var(--text-muted);">Teacher Notes</th>
       `;
       activeColumns.forEach((col, idx) => {
         mHtml += `<th>
@@ -649,14 +656,19 @@
               onchange="activeColumns[${idx}].max = parseFloat(this.value) || 1; recalculate(); triggerAutoSave();" />
         </th>`;
       });
-      mHtml += `<th class="col-summary">100%</th><th class="col-summary">Scale</th><th></th>`;
+      mHtml += `
+        <th class="col-summary">100%</th>
+        <th class="col-summary">Scale</th>
+        <th class="col-summary">Max 4</th>
+        <th class="col-notes-right" style="font-size:0.75rem; color:var(--text-muted);">Teacher Notes</th>
+        <th></th>
+      `;
       trMax.innerHTML = mHtml;
 
-      // 3. Row 3: Weightings
+      // 3. Row 3: Weightings (Floating Level header cell is sticky)
       let wHtml = `
         <th class="col-student" style="font-size:0.75rem; color:#0369a1;">WEIGHTING (%)</th>
         <th class="col-floating-level"></th>
-        <th class="col-notes"></th>
       `;
       activeColumns.forEach((col, idx) => {
         wHtml += `<th>
@@ -664,7 +676,13 @@
             onchange="activeColumns[${idx}].weight = parseFloat(this.value) || 0; recalculate(); triggerAutoSave();" /> %
         </th>`;
       });
-      wHtml += `<th class="col-summary" id="weightSummaryCell"></th><th class="col-summary"></th><th></th>`;
+      wHtml += `
+        <th class="col-summary" id="weightSummaryCell"></th>
+        <th class="col-summary"></th>
+        <th class="col-summary"></th>
+        <th class="col-notes-right"></th>
+        <th></th>
+      `;
       trWeights.innerHTML = wHtml;
 
       // 4. Student Rows
@@ -688,11 +706,7 @@
               onchange="activeStudents[${sIdx}].name = this.value; triggerAutoSave();" />
           </div>
         </td>
-        <td class="col-floating-level" id="level-${sIdx}">-</td>
-        <td class="col-notes">
-          <input class="notes-input" id="notes-${sIdx}" value="${student.notes || ''}" 
-            placeholder="Add note..." onchange="updateStudentNotes(${sIdx}, this.value)" />
-        </td>
+        <td class="col-floating-level" id="level-sticky-${sIdx}">-</td>
       `;
 
       activeColumns.forEach((col, cIdx) => {
@@ -711,6 +725,11 @@
       html += `
         <td class="col-summary" id="avg-${sIdx}">-</td>
         <td class="col-summary" id="badge-${sIdx}">-</td>
+        <td class="col-summary" id="level-right-${sIdx}">-</td>
+        <td class="col-notes-right">
+          <input class="notes-input" id="notes-${sIdx}" value="${student.notes || ''}" 
+            placeholder="Add note..." onchange="updateStudentNotes(${sIdx}, this.value)" />
+        </td>
         <td>
           <button class="btn-col-action" title="Remove student" onclick="removeStudent(${sIdx})" style="color:#ef4444;">🗑️</button>
         </td>
@@ -729,7 +748,6 @@
       triggerAutoSave();
     }
 
-    // Modal At-a-Glance Functions
     function openStudentModal(sIdx) {
       currentModalStudentIdx = sIdx;
       const st = activeStudents[sIdx];
@@ -740,13 +758,12 @@
 
       const avgText = document.getElementById(`avg-${sIdx}`).innerText;
       const letterText = document.getElementById(`badge-${sIdx}`).innerText;
-      const levelHtml = document.getElementById(`level-${sIdx}`).innerHTML;
+      const levelHtml = document.getElementById(`level-sticky-${sIdx}`).innerHTML;
 
       document.getElementById('modalAvg').innerText = avgText;
       document.getElementById('modalLetter').innerText = letterText;
       document.getElementById('modalLevel').innerHTML = levelHtml;
 
-      // Compute best and lowest work
       let highestPct = -1, lowestPct = 999;
       let highestName = "None", lowestName = "None";
       let count = 0;
@@ -907,7 +924,8 @@
 
         const avgCell = document.getElementById(`avg-${sIdx}`);
         const badgeCell = document.getElementById(`badge-${sIdx}`);
-        const levelCell = document.getElementById(`level-${sIdx}`);
+        const levelStickyCell = document.getElementById(`level-sticky-${sIdx}`);
+        const levelRightCell = document.getElementById(`level-right-${sIdx}`);
 
         if (appliedWeight > 0) {
           const finalAverage = (earnedSum / appliedWeight).toFixed(1);
@@ -917,11 +935,15 @@
 
           avgCell.innerHTML = `<b>${finalAverage}%</b>`;
           badgeCell.innerHTML = `<span class="badge-letter">${letter}</span>`;
-          levelCell.innerHTML = `<span class="level-badge ${colorClass}">${ontarioLevel}</span>`;
+          
+          const badgeHTML = `<span class="level-badge ${colorClass}">${ontarioLevel}</span>`;
+          levelStickyCell.innerHTML = badgeHTML;
+          levelRightCell.innerHTML = badgeHTML;
         } else {
           avgCell.textContent = '-';
           badgeCell.textContent = '-';
-          levelCell.textContent = '-';
+          levelStickyCell.textContent = '-';
+          levelRightCell.textContent = '-';
         }
       });
     }
@@ -999,17 +1021,17 @@
 
     function exportCSV() {
       const currentClass = currentClassKey.toUpperCase();
-      let csv = 'Student Name,Ontario Level,Notes,' + activeColumns.map(c => `"${c.name}"`).join(',') + ',Weighted Average,Letter Grade\n';
-      csv += 'Out Of,Max 4,-,' + activeColumns.map(c => c.max).join(',') + ',100%,-\n';
-      csv += 'Weight,-,-,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-\n';
+      let csv = 'Student Name,Ontario Level,' + activeColumns.map(c => `"${c.name}"`).join(',') + ',Weighted Average,Letter Grade,Ontario Level (Right),Notes\n';
+      csv += 'Out Of,Max 4,' + activeColumns.map(c => c.max).join(',') + ',100%,-,Max 4,-\n';
+      csv += 'Weight,-,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-,-\n';
 
       activeStudents.forEach((st, sIdx) => {
         const avg = document.getElementById(`avg-${sIdx}`).innerText;
         const letter = document.getElementById(`badge-${sIdx}`).innerText;
-        const level = document.getElementById(`level-${sIdx}`).innerText;
+        const level = document.getElementById(`level-sticky-${sIdx}`).innerText;
         const notes = (st.notes || '').replace(/"/g, '""');
         const marks = activeColumns.map((_, cIdx) => `"${st.marks[cIdx] || ''}"`).join(',');
-        csv += `"${st.name}","${level}","${notes}",${marks},${avg},${letter}\n`;
+        csv += `"${st.name}","${level}",${marks},${avg},${letter},"${level}","${notes}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv' });
