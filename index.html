@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Gradebook & Weighting Portal</title>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-hover: #1d4ed8;
+      --accent: #0284c7;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --highlight: #eff6ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 1.5rem; }
+    .container { max-width: 100%; margin: 0 auto; }
+
+    header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem; }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #1e293b; }
+    p.subtitle { color: var(--text-muted); font-size: 0.875rem; margin-top: 0.2rem; }
+
+    .toolbar { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+    button {
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      padding: 0.5rem 0.85rem; border-radius: 6px; cursor: pointer; font-size: 0.825rem; font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    button:hover { background: #f1f5f9; border-color: #94a3b8; }
+    button.btn-primary { background: var(--primary); color: #fff; border: none; }
+    button.btn-primary:hover { background: var(--primary-hover); }
+
+    select {
+      padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+      font-size: 0.825rem; background: var(--surface); font-weight: 500;
+    }
+
+    /* Grid / Sheet Styling */
+    .sheet-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;
+    }
+    .table-container {
+      overflow-x: auto; max-height: calc(100vh - 210px); position: relative;
+    }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.825rem; }
+    th, td {
+      border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 0.4rem 0.55rem; text-align: center; white-space: nowrap;
+    }
+
+    /* Sticky columns & header rows */
+    thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 5; background: #f1f5f9; font-weight: 600; color: #334155; }
+    thead tr:nth-child(2) th { position: sticky; top: 32px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
+    thead tr:nth-child(3) th { position: sticky; top: 62px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
+
+    /* Sticky student name column */
+    .col-student {
+      position: sticky; left: 0; z-index: 3; background: var(--surface); text-align: left;
+      font-weight: 600; min-width: 170px; max-width: 220px;
+    }
+    thead th.col-student { z-index: 6; background: #e2e8f0; }
+
+    /* Summary sticky right columns */
+    .col-summary { background: #f8fafc; font-weight: 600; min-width: 80px; }
+    thead th.col-summary { background: #e2e8f0; }
+
+    /* Editable inputs */
+    input.cell-input {
+      width: 100%; min-width: 60px; max-width: 90px; text-align: center; border: 1px solid transparent;
+      background: transparent; font-size: 0.825rem; padding: 0.25rem; border-radius: 4px;
+    }
+    input.cell-input:hover { border-color: #cbd5e1; background: #fff; }
+    input.cell-input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 2px rgba(2,132,199,0.2); }
+
+    input.weight-input {
+      width: 50px; text-align: center; font-size: 0.75rem; font-weight: bold;
+      border: 1px solid #7dd3fc; border-radius: 4px; padding: 2px 4px; background: #fff; color: #0369a1;
+    }
+
+    .badge {
+      display: inline-block; padding: 0.2rem 0.45rem; border-radius: 4px; font-weight: 700;
+      background: #dbeafe; color: #1e40af; font-size: 0.8rem;
+    }
+
+    .weight-total-bar {
+      padding: 0.6rem 1rem; background: #f8fafc; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <h1>GradeBook Input & Weighted Calculation Portal</h1>
+        <p class="subtitle">Enter assignment/test marks and set weighting percentages to instantly populate student standing.</p>
+      </div>
+      <div class="toolbar">
+        <label for="templateSelect" style="font-size: 0.825rem; font-weight: 600;">Template:</label>
+        <select id="templateSelect" onchange="loadPreset(this.value)">
+          <option value="7AV">Grade 7 Science (7AV Template)</option>
+          <option value="8AV">Grade 8 Science (8AV Template)</option>
+          <option value="7Math">Grade 7 Math (Term 2 Template)</option>
+        </select>
+        <button onclick="addStudent()">+ Add Student</button>
+        <button onclick="addColumn()">+ Add Assessment</button>
+        <button onclick="distributeEvenly()">Even Weighting</button>
+        <button class="btn-primary" onclick="exportCSV()">Export to CSV</button>
+      </div>
+    </header>
+
+    <div class="sheet-card">
+      <div class="table-container">
+        <table id="gradeTable">
+          <thead>
+            <tr id="rowHeaders"></tr>
+            <tr id="rowMaxScores"></tr>
+            <tr id="rowWeights"></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="weight-total-bar">
+        <span><b>Total Active Weight:</b> <span id="weightSum">100%</span></span>
+        <span style="color: var(--text-muted);">Supports raw marks (e.g. 14), percentages, or Ontario Levels (4+, 4, 4-, 3+, 3, etc.)</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Ontario Achievement Level standard conversions
+    const LEVEL_MAP = {
+      '4+': 95, '4': 87, '4-': 80, '4/4-': 83.5, '4-/3+': 79,
+      '3+': 78, '3': 75, '3-': 70, '3+/3': 76.5, '3/3+': 76.5, '3-/2+': 68.5,
+      '2+': 67, '2': 64, '2-': 60, '2/2+': 62,
+      '1+': 57, '1': 54, '1-': 50,
+      'R': 35, '0': 0
+    };
+
+    // Scale mapped directly from your sheet's "Grade" tab
+    function getLetterGrade(pct) {
+      if (pct >= 95) return 'A+';
+      if (pct >= 87) return 'A';
+      if (pct >= 80) return 'A-';
+      if (pct >= 78) return 'B+';
+      if (pct >= 75) return 'B';
+      if (pct >= 70) return 'B-';
+      if (pct >= 67) return 'C+';
+      if (pct >= 64) return 'C';
+      if (pct >= 60) return 'C-';
+      if (pct >= 57) return 'D+';
+      if (pct >= 54) return 'D';
+      if (pct >= 50) return 'D-';
+      return 'F';
+    }
+
+    // Exact Assessment templates extracted from your Google Sheet
+    const PRESETS = {
+      '7AV': {
+        columns: [
+          { name: "Check in", max: 15, weight: 5 },
+          { name: "Ob In Quiz", max: 4, weight: 5 },
+          { name: "Variable Check-in", max: 15, weight: 5 },
+          { name: "Test Unit 1", max: 4, weight: 10 },
+          { name: "Structure CI", max: 4, weight: 5 },
+          { name: "Unit 2 Test", max: 32, weight: 10 },
+          { name: "Form & Function Test", max: 15, weight: 10 },
+          { name: "State of Matter C/I", max: 16, weight: 5 },
+          { name: "Sep Mix", max: 16, weight: 10 },
+          { name: "Explore Effects", max: 60, weight: 15 },
+          { name: "Heat Impact", max: 20, weight: 10 },
+          { name: "Human Activity", max: 20, weight: 10 }
+        ],
+        students: [
+          { name: "Alter, Jayden", marks: ["15", "4", "15", "3+", "3", "28", "14", "15", "15", "56", "19", "18"] },
+          { name: "Aronovici, Bradley", marks: ["15", "3", "12.5", "3+", "3+", "25", "13", "14", "14", "50", "17", "16"] },
+          { name: "Bockner, Spencer", marks: ["15", "4", "14", "3+", "3", "27", "14", "14.5", "15", "52", "18", "18"] },
+          { name: "Bratt, Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"] },
+          { name: "Goodman, Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"] }
+        ]
+      },
+      '8AV': {
+        columns: [
+          { name: "Variable Check-in", max: 10, weight: 10 },
+          { name: "Lab Report #1", max: 20, weight: 15 },
+          { name: "Microscope Quiz", max: 30, weight: 15 },
+          { name: "Unit 2 Test", max: 39, weight: 20 },
+          { name: "Cell Model", max: 16, weight: 10 },
+          { name: "Test Unit 3", max: 50, weight: 20 },
+          { name: "Fluid Project", max: 12, weight: 10 }
+        ],
+        students: [
+          { name: "Applebaum, Parker", marks: ["9", "18", "27", "35", "15", "46", "11"] },
+          { name: "Bacal, Catherine", marks: ["10", "19", "28", "37", "16", "48", "12"] },
+          { name: "Ball, Hudson", marks: ["8", "16", "24", "31", "13", "40", "10"] },
+          { name: "Baruch, Max", marks: ["9.5", "17", "26", "34", "14", "44", "11"] }
+        ]
+      },
+      '7Math': {
+        columns: [
+          { name: "Patterning (KU)", max: 4, weight: 15 },
+          { name: "Algebra (TA)", max: 4, weight: 15 },
+          { name: "2D Geo (C)", max: 4, weight: 15 },
+          { name: "3D Geo (KU)", max: 4, weight: 15 },
+          { name: "Data Mgmt", max: 4, weight: 15 },
+          { name: "Exam", max: 30, weight: 25 }
+        ],
+        students: [
+          { name: "Adelstein, Ryann", marks: ["4-", "4", "4-", "3", "3+", "27.8"] },
+          { name: "Bergson, Joel", marks: ["4", "4", "4", "3-", "3", "29.5"] },
+          { name: "Bockner, Hanna", marks: ["4", "4", "4", "2+", "3-", "29.0"] },
+          { name: "Cohen, Micah", marks: ["4", "4-", "4-", "4-", "4-", "30.0"] }
+        ]
+      }
+    };
+
+    let activeColumns = [];
+    let activeStudents = [];
+
+    function loadPreset(key) {
+      const data = PRESETS[key];
+      activeColumns = JSON.parse(JSON.stringify(data.columns));
+      activeStudents = JSON.parse(JSON.stringify(data.students));
+      renderTable();
+    }
+
+    function renderTable() {
+      const trHeaders = document.getElementById('rowHeaders');
+      const trMax = document.getElementById('rowMaxScores');
+      const trWeights = document.getElementById('rowWeights');
+      const tbody = document.getElementById('tableBody');
+
+      // 1. Build Header Row 1 (Names)
+      let hHtml = `<th class="col-student">Student Name</th>`;
+      activeColumns.forEach((col, idx) => {
+        hHtml += `<th>
+          <input class="cell-input" style="font-weight:700; max-width:110px;" value="${col.name}" 
+            onchange="activeColumns[${idx}].name = this.value" />
+        </th>`;
+      });
+      hHtml += `<th class="col-summary">Weighted Avg</th><th class="col-summary">Letter Grade</th><th style="width:40px;">Action</th>`;
+      trHeaders.innerHTML = hHtml;
+
+      // 2. Build Header Row 2 (Out Of Values)
+      let mHtml = `<th class="col-student" style="font-size:0.75rem; color:var(--text-muted);">OUT OF / TOTAL</th>`;
+      activeColumns.forEach((col, idx) => {
+        mHtml += `<th>
+          / <input class="cell-input" style="width:40px; display:inline-block;" type="number" min="1" value="${col.max}" 
+              onchange="activeColumns[${idx}].max = parseFloat(this.value) || 1; recalculate();" />
+        </th>`;
+      });
+      mHtml += `<th class="col-summary">100%</th><th class="col-summary">Scale</th><th></th>`;
+      trMax.innerHTML = mHtml;
+
+      // 3. Build Header Row 3 (Weighting % Input)
+      let wHtml = `<th class="col-student" style="font-size:0.75rem; color:#0369a1;">WEIGHTING (%)</th>`;
+      activeColumns.forEach((col, idx) => {
+        wHtml += `<th>
+          <input class="weight-input" type="number" min="0" max="100" step="1" value="${col.weight}" 
+            onchange="activeColumns[${idx}].weight = parseFloat(this.value) || 0; recalculate();" /> %
+        </th>`;
+      });
+      wHtml += `<th class="col-summary" id="weightSummaryCell"></th><th class="col-summary"></th><th></th>`;
+      trWeights.innerHTML = wHtml;
+
+      // 4. Build Student Rows
+      tbody.innerHTML = '';
+      activeStudents.forEach((student, sIdx) => {
+        const tr = document.createElement('tr');
+        tr.id = `student-row-${sIdx}`;
+        tr.innerHTML = getStudentRowHTML(student, sIdx);
+        tbody.appendChild(tr);
+      });
+
+      recalculate();
+    }
+
+    function getStudentRowHTML(student, sIdx) {
+      let html = `<td class="col-student">
+        <input class="cell-input" style="font-weight:600; text-align:left; max-width:200px;" value="${student.name}" 
+          onchange="activeStudents[${sIdx}].name = this.value" />
+      </td>`;
+
+      activeColumns.forEach((col, cIdx) => {
+        const val = student.marks[cIdx] !== undefined ? student.marks[cIdx] : '';
+        html += `<td>
+          <input class="cell-input" value="${val}" 
+            placeholder="-" 
+            onchange="updateMark(${sIdx}, ${cIdx}, this.value)" />
+        </td>`;
+      });
+
+      html += `
+        <td class="col-summary" id="avg-${sIdx}">-</td>
+        <td class="col-summary" id="badge-${sIdx}">-</td>
+        <td><button onclick="removeStudent(${sIdx})" style="color:#ef4444; border:none; background:transparent; cursor:pointer;">&times;</button></td>
+      `;
+      return html;
+    }
+
+    function updateMark(studentIdx, colIdx, val) {
+      activeStudents[studentIdx].marks[colIdx] = val.trim();
+      recalculate();
+    }
+
+    function parseToPercent(markVal, outOf) {
+      if (!markVal || markVal === 'x' || markVal === '-') return null;
+
+      // Check Ontario Level conversion
+      if (LEVEL_MAP[markVal] !== undefined) {
+        return LEVEL_MAP[markVal];
+      }
+
+      // Check numeric
+      const numeric = parseFloat(markVal);
+      if (isNaN(numeric)) return null;
+
+      if (outOf && outOf > 0) {
+        return (numeric / outOf) * 100;
+      }
+      return numeric;
+    }
+
+    function recalculate() {
+      let totalWeight = 0;
+      activeColumns.forEach(c => totalWeight += (c.weight || 0));
+      document.getElementById('weightSum').textContent = totalWeight + '%';
+      document.getElementById('weightSummaryCell').textContent = totalWeight + '%';
+
+      activeStudents.forEach((st, sIdx) => {
+        let earnedSum = 0;
+        let appliedWeight = 0;
+
+        activeColumns.forEach((col, cIdx) => {
+          const rawMark = st.marks[cIdx];
+          const pct = parseToPercent(rawMark, col.max);
+          const w = col.weight || 0;
+
+          if (pct !== null && w > 0) {
+            earnedSum += (pct * w);
+            appliedWeight += w;
+          }
+        });
+
+        const avgCell = document.getElementById(`avg-${sIdx}`);
+        const badgeCell = document.getElementById(`badge-${sIdx}`);
+
+        if (appliedWeight > 0) {
+          const finalAverage = (earnedSum / appliedWeight).toFixed(1);
+          const letter = getLetterGrade(finalAverage);
+          avgCell.innerHTML = `<b>${finalAverage}%</b>`;
+          badgeCell.innerHTML = `<span class="badge">${letter}</span>`;
+        } else {
+          avgCell.textContent = '-';
+          badgeCell.textContent = '-';
+        }
+      });
+    }
+
+    function distributeEvenly() {
+      if (activeColumns.length === 0) return;
+      const even = Math.floor(100 / activeColumns.length);
+      const remainder = 100 % activeColumns.length;
+
+      activeColumns.forEach((col, i) => {
+        col.weight = even + (i === 0 ? remainder : 0);
+      });
+      renderTable();
+    }
+
+    function addStudent() {
+      const name = prompt("Enter student name (e.g. 'Lastname, Firstname'):");
+      if (!name) return;
+      activeStudents.push({ name: name, marks: new Array(activeColumns.length).fill('') });
+      renderTable();
+    }
+
+    function removeStudent(index) {
+      if (confirm(`Remove ${activeStudents[index].name}?`)) {
+        activeStudents.splice(index, 1);
+        renderTable();
+      }
+    }
+
+    function addColumn() {
+      const title = prompt("Enter assessment or test title:", "New Test");
+      if (!title) return;
+      const maxVal = parseFloat(prompt("Enter total marks it is out of:", "20")) || 20;
+      activeColumns.push({ name: title, max: maxVal, weight: 10 });
+      activeStudents.forEach(st => st.marks.push(''));
+      renderTable();
+    }
+
+    function exportCSV() {
+      let csv = 'Student Name,' + activeColumns.map(c => `"${c.name}"`).join(',') + ',Weighted Average,Letter Grade\n';
+      csv += 'Out Of,' + activeColumns.map(c => c.max).join(',') + ',100%,-\n';
+      csv += 'Weight,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-\n';
+
+      activeStudents.forEach((st, sIdx) => {
+        const avg = document.getElementById(`avg-${sIdx}`).innerText;
+        const letter = document.getElementById(`badge-${sIdx}`).innerText;
+        const marks = activeColumns.map((_, cIdx) => `"${st.marks[cIdx] || ''}"`).join(',');
+        csv += `"${st.name}",${marks},${avg},${letter}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'GradeBook_Calculated.csv';
+      a.click();
+    }
+
+    // Initialize with 7AV template
+    loadPreset('7AV');
+  </script>
+</body>
+</html>
