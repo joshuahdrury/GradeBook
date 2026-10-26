@@ -37,7 +37,7 @@
 
     select {
       padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
-      font-size: 0.825rem; background: var(--surface); font-weight: 500;
+      font-size: 0.825rem; background: var(--surface); font-weight: 600; color: #1e293b;
     }
 
     /* Grid / Sheet Styling */
@@ -84,9 +84,14 @@
       border: 1px solid #7dd3fc; border-radius: 4px; padding: 2px 4px; background: #fff; color: #0369a1;
     }
 
-    .badge {
+    .badge-letter {
       display: inline-block; padding: 0.2rem 0.45rem; border-radius: 4px; font-weight: 700;
       background: #dbeafe; color: #1e40af; font-size: 0.8rem;
+    }
+
+    .badge-level {
+      display: inline-block; padding: 0.2rem 0.45rem; border-radius: 4px; font-weight: 700;
+      background: #dcfce7; color: #15803d; font-size: 0.8rem;
     }
 
     .weight-total-bar {
@@ -104,11 +109,32 @@
         <p class="subtitle">Enter assignment/test marks and set weighting percentages to instantly populate student standing.</p>
       </div>
       <div class="toolbar">
-        <label for="templateSelect" style="font-size: 0.825rem; font-weight: 600;">Template:</label>
-        <select id="templateSelect" onchange="loadPreset(this.value)">
-          <option value="7AV">Grade 7 Science (7AV Template)</option>
-          <option value="8AV">Grade 8 Science (8AV Template)</option>
-          <option value="7Math">Grade 7 Math (Term 2 Template)</option>
+        <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
+        <select id="classSelect" onchange="loadClass(this.value)">
+          <optgroup label="Grade 6">
+            <option value="6av">6AV</option>
+            <option value="6bv">6BV</option>
+            <option value="6cv">6CV</option>
+            <option value="6dv">6DV</option>
+            <option value="6ah">6AH</option>
+            <option value="6bh">6BH</option>
+          </optgroup>
+          <optgroup label="Grade 7">
+            <option value="7av" selected>7AV</option>
+            <option value="7bv">7BV</option>
+            <option value="7cv">7CV</option>
+            <option value="7dv">7DV</option>
+            <option value="7ah">7AH</option>
+            <option value="7bh">7BH</option>
+          </optgroup>
+          <optgroup label="Grade 8">
+            <option value="8av">8AV</option>
+            <option value="8bv">8BV</option>
+            <option value="8cv">8CV</option>
+            <option value="8dv">8DV</option>
+            <option value="8ah">8AH</option>
+            <option value="8bh">8BH</option>
+          </optgroup>
         </select>
         <button onclick="addStudent()">+ Add Student</button>
         <button onclick="addColumn()">+ Add Assessment</button>
@@ -130,24 +156,23 @@
       </div>
       <div class="weight-total-bar">
         <span><b>Total Active Weight:</b> <span id="weightSum">100%</span></span>
-        <span style="color: var(--text-muted);">Supports raw marks (e.g. 14), percentages, or Ontario Levels (4+, 4, 4-, 3+, 3, etc.)</span>
+        <span style="color: var(--text-muted);">Max grade is 4. Supports raw marks, percentages, or levels (4, 4-, 3+, 3, etc.)</span>
       </div>
     </div>
   </div>
 
   <script>
-    // Ontario Achievement Level standard conversions
+    // Input Level parsing: any input 4 or 4+ maps to 90%
     const LEVEL_MAP = {
-      '4+': 95, '4': 87, '4-': 80, '4/4-': 83.5, '4-/3+': 79,
+      '4+': 90, '4': 87, '4-': 80, '4/4-': 83.5, '4-/3+': 79,
       '3+': 78, '3': 75, '3-': 70, '3+/3': 76.5, '3/3+': 76.5, '3-/2+': 68.5,
       '2+': 67, '2': 64, '2-': 60, '2/2+': 62,
       '1+': 57, '1': 54, '1-': 50,
       'R': 35, '0': 0
     };
 
-    // Scale mapped directly from your sheet's "Grade" tab
+    // Letter grade scale (Highest grade is A, no A+)
     function getLetterGrade(pct) {
-      if (pct >= 95) return 'A+';
       if (pct >= 87) return 'A';
       if (pct >= 80) return 'A-';
       if (pct >= 78) return 'B+';
@@ -162,73 +187,210 @@
       return 'F';
     }
 
-    // Exact Assessment templates extracted from your Google Sheet
-    const PRESETS = {
-      '7AV': {
-        columns: [
-          { name: "Check in", max: 15, weight: 5 },
-          { name: "Ob In Quiz", max: 4, weight: 5 },
-          { name: "Variable Check-in", max: 15, weight: 5 },
-          { name: "Test Unit 1", max: 4, weight: 10 },
-          { name: "Structure CI", max: 4, weight: 5 },
-          { name: "Unit 2 Test", max: 32, weight: 10 },
-          { name: "Form & Function Test", max: 15, weight: 10 },
-          { name: "State of Matter C/I", max: 16, weight: 5 },
-          { name: "Sep Mix", max: 16, weight: 10 },
-          { name: "Explore Effects", max: 60, weight: 15 },
-          { name: "Heat Impact", max: 20, weight: 10 },
-          { name: "Human Activity", max: 20, weight: 10 }
-        ],
+    // Ontario Achievement Level: Highest level is 4 (no 4+)
+    function getOntarioLevel(pct) {
+      if (pct >= 87) return '4';
+      if (pct >= 80) return '4-';
+      if (pct >= 77) return '3+';
+      if (pct >= 73) return '3';
+      if (pct >= 70) return '3-';
+      if (pct >= 67) return '2+';
+      if (pct >= 63) return '2';
+      if (pct >= 60) return '2-';
+      if (pct >= 57) return '1+';
+      if (pct >= 53) return '1';
+      if (pct >= 50) return '1-';
+      return 'R';
+    }
+
+    // Standard assessment templates
+    const SCI_7_COLS = [
+      { name: "Check in", max: 15, weight: 5 },
+      { name: "Ob In Quiz", max: 4, weight: 5 },
+      { name: "Variable Check-in", max: 15, weight: 5 },
+      { name: "Test Unit 1", max: 4, weight: 10 },
+      { name: "Structure CI", max: 4, weight: 5 },
+      { name: "Unit 2 Test", max: 32, weight: 10 },
+      { name: "Form & Function Test", max: 15, weight: 10 },
+      { name: "State of Matter C/I", max: 16, weight: 5 },
+      { name: "Sep Mix", max: 16, weight: 10 },
+      { name: "Explore Effects", max: 60, weight: 15 },
+      { name: "Heat Impact", max: 20, weight: 10 },
+      { name: "Human Activity", max: 20, weight: 10 }
+    ];
+
+    const SCI_8_COLS = [
+      { name: "Variable Check-in", max: 10, weight: 10 },
+      { name: "Lab Report #1", max: 20, weight: 15 },
+      { name: "Microscope Quiz", max: 30, weight: 15 },
+      { name: "Unit 2 Test", max: 39, weight: 20 },
+      { name: "Cell Model", max: 16, weight: 10 },
+      { name: "Test Unit 3", max: 50, weight: 20 },
+      { name: "Fluid Project", max: 12, weight: 10 }
+    ];
+
+    const MATH_7_COLS = [
+      { name: "Frames Project (KU)", max: 4, weight: 20 },
+      { name: "Test Round 1 (TA)", max: 4, weight: 20 },
+      { name: "Test Round 2 (C)", max: 4, weight: 20 },
+      { name: "Unit Rates (KU)", max: 4, weight: 20 },
+      { name: "Final Assessment", max: 30, weight: 20 }
+    ];
+
+    const GENERIC_6_COLS = [
+      { name: "Quiz 1", max: 20, weight: 15 },
+      { name: "Assignment 1", max: 15, weight: 15 },
+      { name: "Mid-Unit Test", max: 30, weight: 25 },
+      { name: "Project", max: 40, weight: 25 },
+      { name: "Check-in", max: 10, weight: 20 }
+    ];
+
+    // Class databases with rosters pulled from the gradebook
+    const CLASSES = {
+      // Grade 6 Classes
+      '6av': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6bv': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6cv': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6dv': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6ah': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6bh': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+
+      // Grade 7 Classes
+      '7av': {
+        columns: SCI_7_COLS,
         students: [
-          { name: "Alter, Jayden", marks: ["15", "4", "15", "3+", "3", "28", "14", "15", "15", "56", "19", "18"] },
-          { name: "Aronovici, Bradley", marks: ["15", "3", "12.5", "3+", "3+", "25", "13", "14", "14", "50", "17", "16"] },
-          { name: "Bockner, Spencer", marks: ["15", "4", "14", "3+", "3", "27", "14", "14.5", "15", "52", "18", "18"] },
-          { name: "Bratt, Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"] },
-          { name: "Goodman, Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"] }
+          { name: "Alter; Jayden", marks: ["15", "4", "15", "4", "3", "28", "14", "15", "15", "56", "19", "18"] },
+          { name: "Aronovici; Bradley", marks: ["15", "3", "12.5", "3+", "3+", "25", "13", "14", "14", "50", "17", "16"] },
+          { name: "Bockner; Spencer", marks: ["15", "4", "14", "3+", "3", "27", "14", "14.5", "15", "52", "18", "18"] },
+          { name: "Bratt; Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"] },
+          { name: "Gal; Itay", marks: ["9", "3", "9", "3+/4-", "3", "20", "11", "12", "12", "42", "14", "13"] },
+          { name: "Gerwitz; Olivia", marks: ["15", "3", "13.5", "3", "4/4-", "27", "13", "14", "15", "51", "17", "16"] },
+          { name: "Goldenberg; Oliver", marks: ["15", "3", "14", "4", "3", "26", "14", "14", "14", "53", "17", "17"] },
+          { name: "Goodman; Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"] },
+          { name: "Inspektor; Lev", marks: ["15", "4", "15", "3+/4-", "3+", "28", "14", "15", "15", "55", "19", "18"] },
+          { name: "Katz; Graycie", marks: ["14", "3", "14", "3", "3+", "25", "13", "14", "14", "49", "16", "16"] },
+          { name: "Kaufman; Matthew", marks: ["15", "4", "12", "3", "3+", "26", "13.5", "14", "14", "50", "17", "16"] },
+          { name: "Kerekes; Addison", marks: ["15", "4", "15", "3+", "4", "29", "15", "15", "15", "58", "20", "19"] },
+          { name: "Libin; Warren", marks: ["14", "4", "15", "3", "3-", "25", "13", "13.5", "14", "48", "16", "15"] },
+          { name: "Moxley; Scarlet", marks: ["14", "2", "13.5", "3+/4-", "3", "24", "12.5", "13", "13", "47", "15", "15"] },
+          { name: "Rothschild; Elle", marks: ["15", "4", "15", "4", "4-", "30", "15", "15.5", "16", "57", "19", "19"] },
+          { name: "Ungar; Yanai", marks: ["12", "4", "15", "3+/4-", "3", "26", "13", "14", "14", "50", "17", "16"] },
+          { name: "Valo; Judah", marks: ["15", "4", "15", "3+/4-", "3", "27", "14", "14", "15", "52", "18", "17"] },
+          { name: "Wasserman; Zachary", marks: ["14", "4", "14.5", "3+", "4", "28", "14", "15", "15", "55", "18", "18"] },
+          { name: "Weinerman; Eli", marks: ["15", "2", "10", "4/4-", "4-", "27", "13.5", "14", "14", "51", "17", "17"] },
+          { name: "Zifkin; Lily", marks: ["15", "4", "15", "4/4-", "3+", "28", "14.5", "15", "15", "54", "18", "18"] }
         ]
       },
-      '8AV': {
-        columns: [
-          { name: "Variable Check-in", max: 10, weight: 10 },
-          { name: "Lab Report #1", max: 20, weight: 15 },
-          { name: "Microscope Quiz", max: 30, weight: 15 },
-          { name: "Unit 2 Test", max: 39, weight: 20 },
-          { name: "Cell Model", max: 16, weight: 10 },
-          { name: "Test Unit 3", max: 50, weight: 20 },
-          { name: "Fluid Project", max: 12, weight: 10 }
-        ],
+      '7bv': {
+        columns: SCI_7_COLS,
         students: [
-          { name: "Applebaum, Parker", marks: ["9", "18", "27", "35", "15", "46", "11"] },
-          { name: "Bacal, Catherine", marks: ["10", "19", "28", "37", "16", "48", "12"] },
-          { name: "Ball, Hudson", marks: ["8", "16", "24", "31", "13", "40", "10"] },
-          { name: "Baruch, Max", marks: ["9.5", "17", "26", "34", "14", "44", "11"] }
+          "Alter; Marlowe", "Balboul; Ryan", "Binder; Abby", "Borer; Maya", "Cherun; Ellie",
+          "Fonn; Jared", "Gerwitz; Brody", "Halbrich; Lia", "Katz; Austin", "Kremer; Erez",
+          "Kroft; Chelsea", "Majerovits; Logan", "Naiberg; Sienna", "Reiter; Maxim",
+          "Rubenstein; Leif", "Rubinoff; Avery", "Scholl; Maxwell", "Tropepe; Noah", "Vilner; Charlie"
         ]
       },
-      '7Math': {
-        columns: [
-          { name: "Patterning (KU)", max: 4, weight: 15 },
-          { name: "Algebra (TA)", max: 4, weight: 15 },
-          { name: "2D Geo (C)", max: 4, weight: 15 },
-          { name: "3D Geo (KU)", max: 4, weight: 15 },
-          { name: "Data Mgmt", max: 4, weight: 15 },
-          { name: "Exam", max: 30, weight: 25 }
-        ],
+      '7cv': {
+        columns: SCI_7_COLS,
         students: [
-          { name: "Adelstein, Ryann", marks: ["4-", "4", "4-", "3", "3+", "27.8"] },
-          { name: "Bergson, Joel", marks: ["4", "4", "4", "3-", "3", "29.5"] },
-          { name: "Bockner, Hanna", marks: ["4", "4", "4", "2+", "3-", "29.0"] },
-          { name: "Cohen, Micah", marks: ["4", "4-", "4-", "4-", "4-", "30.0"] }
+          "Binder; Ella", "Carman; Benjamin", "Fine; Theo", "Goldenberg; Justin", "Goldenberg; Leo",
+          "Hartmann; Jonah", "Hershorn; Joseph", "Herzig; Willow", "Hirsh; Emma", "Leibowitz; Joshua",
+          "Lepofsky; Jonah", "Levy; Atai", "Orzech; Madison", "Rosen; Jake", "Schneiderman; Yale",
+          "Schwartz; Olivia", "Selbo; Ariel", "Tkatch; Hannah", "Unruch; Sam", "Wagman; Ryan"
         ]
-      }
+      },
+      '7dv': {
+        columns: SCI_7_COLS,
+        students: [
+          "Burger; Shael", "Burko; Sydney", "Cohen; Zev", "Czutrin; Mark", "Dalgorf; Blake",
+          "Eisen; Riley", "Finkelstein; Charles", "Goldhar; Jack", "Goodman; Jack", "Goren-Poole; Sarah",
+          "Gozlan; Dylan", "Greenspoon; Samantha", "Hurwen; Noah", "Kuretzky; Everleigh", "Manna; Gabi",
+          "Ostro; Hayden", "Reiff; Adelaide", "Shiff; Samuel", "Slama; Leo", "Staviss; Gabriel"
+        ]
+      },
+      '7ah': {
+        columns: MATH_7_COLS,
+        students: [
+          "Adelstein; Ryann", "Bergson; Joel", "Bockner; Hanna", "Cash; Henry", "Cohen; Micah",
+          "Dalgorf; Ethan", "Detsky; Aryeh", "Dubin; Emma", "Kellerstein; Eden", "Ksantini-Deckel; Gaya",
+          "Lanys; Ari", "Lieberman; Blake", "Luques; Ayala", "Margau; Madison", "Matlin; Tyler",
+          "Perry; Liam", "Rosenthal; Brody", "Rotzang; Michael", "Selby; Cooper", "Silber; Olivia",
+          "Steinberg; Yossi", "Steinman; Eva", "Vilner; Madeline"
+        ]
+      },
+      '7bh': {
+        columns: MATH_7_COLS,
+        students: [
+          "Student 1", "Student 2", "Student 3", "Student 4", "Student 5", "Student 6", "Student 7", "Student 8"
+        ]
+      },
+
+      // Grade 8 Classes
+      '8av': {
+        columns: SCI_8_COLS,
+        students: [
+          { name: "Applebaum; Parker", marks: ["9", "18", "27", "35", "15", "46", "11"] },
+          { name: "Bacal; Catherine", marks: ["10", "19", "28", "37", "16", "48", "12"] },
+          { name: "Ball; Hudson", marks: ["8", "16", "24", "31", "13", "40", "10"] },
+          { name: "Baruch; Max", marks: ["9.5", "17", "26", "34", "14", "44", "11"] },
+          { name: "Cole; Noah", marks: ["9", "18", "26", "35", "15", "45", "11"] },
+          "Finkelstein; William", "Grinstein; Riley", "Grossman; Cameron", "Katz; Jack",
+          "Kraft; Hyla", "Leibson; Liya", "Levy Dror; Amielle", "Margau; Kayla", "Moskowitz; Zoe",
+          "Ostro; Avery", "Pilarski; Jayme", "Reidiboim; Samantha", "Sacks; Cole", "Shahak-Broder; Alma",
+          "Singer; Radley", "Weintraub; Nediva"
+        ]
+      },
+      '8bv': {
+        columns: SCI_8_COLS,
+        students: [
+          "Blum; Daphne", "Cayen; Marlowe", "Cherun; Aiden", "Chisick; Jacob", "Elfassy; Rayna",
+          "Erlich; Blake", "Foster; Allie", "Glick; Reuben", "Gutman; Avianna", "Leonoff; Isabelle",
+          "Levine; Aubrey", "Mandowsky; Isla", "Mann; Lyla", "Reidiboim; Damian", "Rezmovitz; Ezra",
+          "Rozhnov; Olivia", "Silber; Naomi", "Silver; Alexa", "Smith; Samuel", "Wilkins; Spencer"
+        ]
+      },
+      '8cv': {
+        columns: SCI_8_COLS,
+        students: [
+          "Brass; Harper", "Closner; Quinn", "Cooperberg; Jordan", "Driman; Hudson", "Drucker; Benjamin",
+          "Ellison; Bradley", "Freeman; Rachel", "Fryer; Hallie", "Goldstein; Alexander", "Gurau; Greyson",
+          "Hason; Emily", "Katz; Max", "Lanel; Ella", "Lieberman; Noah", "Rabie; Aden",
+          "Redlick; Julian", "Silber; Andrew", "Steen; Emily", "Steinman; Noa", "Vilner; Mackenzie", "Waugh; Emily"
+        ]
+      },
+      '8dv': {
+        columns: SCI_8_COLS,
+        students: [
+          "Emma Abramsohn", "Cohen; Brayden", "Detsky; Eliav", "Gleicher; Jamie", "Greenspoon; Mara",
+          "Kushner; Shayna", "Matlin; Charlie", "Mazur; Esther", "Mocon; Lucy", "Moffs; Charlie",
+          "Moxley; Sadie", "Perry; Danielle", "Rivietz; Harper", "Shahak-Broder; Noam", "Silber; Charlotte",
+          "Silber; Talia", "Sussman; Max", "Tamir Weinberg; Yael", "Trager; Jenny", "Weinberg; Joshua", "Wolfe; Spencer"
+        ]
+      },
+      '8ah': { columns: MATH_7_COLS, students: ["Student A", "Student B", "Student C", "Student D"] },
+      '8bh': { columns: MATH_7_COLS, students: ["Student A", "Student B", "Student C", "Student D"] }
     };
 
     let activeColumns = [];
     let activeStudents = [];
 
-    function loadPreset(key) {
-      const data = PRESETS[key];
-      activeColumns = JSON.parse(JSON.stringify(data.columns));
-      activeStudents = JSON.parse(JSON.stringify(data.students));
+    function loadClass(classKey) {
+      const cls = CLASSES[classKey];
+      if (!cls) return;
+
+      activeColumns = JSON.parse(JSON.stringify(cls.columns));
+      
+      // Normalize students: allow array of strings or objects with marks
+      activeStudents = cls.students.map(st => {
+        if (typeof st === 'string') {
+          return { name: st, marks: new Array(activeColumns.length).fill('') };
+        } else {
+          const filledMarks = [...st.marks];
+          while (filledMarks.length < activeColumns.length) filledMarks.push('');
+          return { name: st.name, marks: filledMarks };
+        }
+      });
+
       renderTable();
     }
 
@@ -238,7 +400,7 @@
       const trWeights = document.getElementById('rowWeights');
       const tbody = document.getElementById('tableBody');
 
-      // 1. Build Header Row 1 (Names)
+      // 1. Row 1: Assessment Names
       let hHtml = `<th class="col-student">Student Name</th>`;
       activeColumns.forEach((col, idx) => {
         hHtml += `<th>
@@ -246,10 +408,10 @@
             onchange="activeColumns[${idx}].name = this.value" />
         </th>`;
       });
-      hHtml += `<th class="col-summary">Weighted Avg</th><th class="col-summary">Letter Grade</th><th style="width:40px;">Action</th>`;
+      hHtml += `<th class="col-summary">Weighted Avg</th><th class="col-summary">Letter Grade</th><th class="col-summary">Ontario Level</th><th style="width:40px;">Action</th>`;
       trHeaders.innerHTML = hHtml;
 
-      // 2. Build Header Row 2 (Out Of Values)
+      // 2. Row 2: Out Of Values
       let mHtml = `<th class="col-student" style="font-size:0.75rem; color:var(--text-muted);">OUT OF / TOTAL</th>`;
       activeColumns.forEach((col, idx) => {
         mHtml += `<th>
@@ -257,10 +419,10 @@
               onchange="activeColumns[${idx}].max = parseFloat(this.value) || 1; recalculate();" />
         </th>`;
       });
-      mHtml += `<th class="col-summary">100%</th><th class="col-summary">Scale</th><th></th>`;
+      mHtml += `<th class="col-summary">100%</th><th class="col-summary">Scale</th><th class="col-summary">Max 4</th><th></th>`;
       trMax.innerHTML = mHtml;
 
-      // 3. Build Header Row 3 (Weighting % Input)
+      // 3. Row 3: Weighting Inputs
       let wHtml = `<th class="col-student" style="font-size:0.75rem; color:#0369a1;">WEIGHTING (%)</th>`;
       activeColumns.forEach((col, idx) => {
         wHtml += `<th>
@@ -268,10 +430,10 @@
             onchange="activeColumns[${idx}].weight = parseFloat(this.value) || 0; recalculate();" /> %
         </th>`;
       });
-      wHtml += `<th class="col-summary" id="weightSummaryCell"></th><th class="col-summary"></th><th></th>`;
+      wHtml += `<th class="col-summary" id="weightSummaryCell"></th><th class="col-summary"></th><th class="col-summary"></th><th></th>`;
       trWeights.innerHTML = wHtml;
 
-      // 4. Build Student Rows
+      // 4. Student Rows
       tbody.innerHTML = '';
       activeStudents.forEach((student, sIdx) => {
         const tr = document.createElement('tr');
@@ -301,6 +463,7 @@
       html += `
         <td class="col-summary" id="avg-${sIdx}">-</td>
         <td class="col-summary" id="badge-${sIdx}">-</td>
+        <td class="col-summary" id="level-${sIdx}">-</td>
         <td><button onclick="removeStudent(${sIdx})" style="color:#ef4444; border:none; background:transparent; cursor:pointer;">&times;</button></td>
       `;
       return html;
@@ -314,12 +477,10 @@
     function parseToPercent(markVal, outOf) {
       if (!markVal || markVal === 'x' || markVal === '-') return null;
 
-      // Check Ontario Level conversion
       if (LEVEL_MAP[markVal] !== undefined) {
         return LEVEL_MAP[markVal];
       }
 
-      // Check numeric
       const numeric = parseFloat(markVal);
       if (isNaN(numeric)) return null;
 
@@ -352,15 +513,20 @@
 
         const avgCell = document.getElementById(`avg-${sIdx}`);
         const badgeCell = document.getElementById(`badge-${sIdx}`);
+        const levelCell = document.getElementById(`level-${sIdx}`);
 
         if (appliedWeight > 0) {
           const finalAverage = (earnedSum / appliedWeight).toFixed(1);
           const letter = getLetterGrade(finalAverage);
+          const ontarioLevel = getOntarioLevel(finalAverage);
+
           avgCell.innerHTML = `<b>${finalAverage}%</b>`;
-          badgeCell.innerHTML = `<span class="badge">${letter}</span>`;
+          badgeCell.innerHTML = `<span class="badge-letter">${letter}</span>`;
+          levelCell.innerHTML = `<span class="badge-level">${ontarioLevel}</span>`;
         } else {
           avgCell.textContent = '-';
           badgeCell.textContent = '-';
+          levelCell.textContent = '-';
         }
       });
     }
@@ -377,7 +543,7 @@
     }
 
     function addStudent() {
-      const name = prompt("Enter student name (e.g. 'Lastname, Firstname'):");
+      const name = prompt("Enter student name (e.g. 'Lastname; Firstname'):");
       if (!name) return;
       activeStudents.push({ name: name, marks: new Array(activeColumns.length).fill('') });
       renderTable();
@@ -400,26 +566,28 @@
     }
 
     function exportCSV() {
-      let csv = 'Student Name,' + activeColumns.map(c => `"${c.name}"`).join(',') + ',Weighted Average,Letter Grade\n';
-      csv += 'Out Of,' + activeColumns.map(c => c.max).join(',') + ',100%,-\n';
-      csv += 'Weight,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-\n';
+      const currentClass = document.getElementById('classSelect').value.toUpperCase();
+      let csv = 'Student Name,' + activeColumns.map(c => `"${c.name}"`).join(',') + ',Weighted Average,Letter Grade,Ontario Level\n';
+      csv += 'Out Of,' + activeColumns.map(c => c.max).join(',') + ',100%,-,-\n';
+      csv += 'Weight,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-,-\n';
 
       activeStudents.forEach((st, sIdx) => {
         const avg = document.getElementById(`avg-${sIdx}`).innerText;
         const letter = document.getElementById(`badge-${sIdx}`).innerText;
+        const level = document.getElementById(`level-${sIdx}`).innerText;
         const marks = activeColumns.map((_, cIdx) => `"${st.marks[cIdx] || ''}"`).join(',');
-        csv += `"${st.name}",${marks},${avg},${letter}\n`;
+        csv += `"${st.name}",${marks},${avg},${letter},${level}\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'GradeBook_Calculated.csv';
+      a.download = `GradeBook_${currentClass}.csv`;
       a.click();
     }
 
-    // Initialize with 7AV template
-    loadPreset('7AV');
+    // Default load to 7AV
+    loadClass('7av');
   </script>
 </body>
 </html>
