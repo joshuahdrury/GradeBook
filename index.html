@@ -84,10 +84,13 @@
       border: 1px solid #7dd3fc; border-radius: 4px; padding: 2px 4px; background: #fff; color: #0369a1;
     }
 
-    .btn-paste-col {
-      background: none; border: none; cursor: pointer; font-size: 0.85rem; padding: 1px 3px; border-radius: 3px;
+    .col-actions {
+      display: inline-flex; align-items: center; gap: 2px;
     }
-    .btn-paste-col:hover { background: #cbd5e1; }
+    .btn-col-action {
+      background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 1px 3px; border-radius: 3px;
+    }
+    .btn-col-action:hover { background: #cbd5e1; }
 
     .badge-letter {
       display: inline-block; padding: 0.2rem 0.45rem; border-radius: 4px; font-weight: 700;
@@ -111,7 +114,7 @@
     <header>
       <div>
         <h1>GradeBook Input & Weighted Calculation Portal</h1>
-        <p class="subtitle">Enter or paste assignment marks directly from Google Classroom / Sheets. Set weights to calculate standing.</p>
+        <p class="subtitle">Enter, paste, or clear assignment marks. Set weights to calculate standing.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -162,14 +165,13 @@
       <div class="weight-total-bar">
         <span><b>Total Active Weight:</b> <span id="weightSum">100%</span></span>
         <span style="color: var(--text-muted);">
-          <b>Tip:</b> Copy a column of marks in Google Classroom/Sheets, click any cell, and press <b>Ctrl+V</b> (or <b>Cmd+V</b>) to bulk fill down.
+          <b>Controls:</b> 📋 Paste Column | 🧹 Clear Marks | 🗑️ Delete Assessment | Click cell and press <b>Ctrl+V</b> to fill down.
         </span>
       </div>
     </div>
   </div>
 
   <script>
-    // Custom Ontario Level percentages
     const LEVEL_MAP = {
       '4+': 95,
       '4': 95,
@@ -178,7 +180,7 @@
       '4-/3+': 87.5,
       '3+/4-': 87.5,
       '3+': 85,
-      '3': 80, // Midpoint of 75-84.99%
+      '3': 80,
       '3/3+': 82.5,
       '3+/3': 82.5,
       '3-': 72,
@@ -194,7 +196,6 @@
       '0': 0
     };
 
-    // Scale bands (Max grade is A)
     function getLetterGrade(pct) {
       if (pct >= 95) return 'A';
       if (pct >= 90) return 'A-';
@@ -210,7 +211,6 @@
       return 'F';
     }
 
-    // Ontario Achievement Level bands (Max level is 4)
     function getOntarioLevel(pct) {
       if (pct >= 95) return '4';
       if (pct >= 90) return '4-';
@@ -415,14 +415,18 @@
       const trWeights = document.getElementById('rowWeights');
       const tbody = document.getElementById('tableBody');
 
-      // 1. Row 1: Assessment Names + Bulk Paste Button
+      // 1. Row 1: Assessment Names + Paste & Clear Buttons
       let hHtml = `<th class="col-student">Student Name</th>`;
       activeColumns.forEach((col, idx) => {
         hHtml += `<th>
-          <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+          <div style="display:flex; align-items:center; justify-content:center; gap:2px;">
             <input class="cell-input" style="font-weight:700; max-width:90px;" value="${col.name}" 
               onchange="activeColumns[${idx}].name = this.value" />
-            <button class="btn-paste-col" title="Paste column of marks from Google Classroom" onclick="promptPasteColumn(${idx})">📋</button>
+            <div class="col-actions">
+              <button class="btn-col-action" title="Paste column from Google Classroom" onclick="promptPasteColumn(${idx})">📋</button>
+              <button class="btn-col-action" title="Clear all marks in this column" onclick="clearColumn(${idx})">🧹</button>
+              <button class="btn-col-action" title="Delete column" onclick="removeColumn(${idx})">🗑️</button>
+            </div>
           </div>
         </th>`;
       });
@@ -496,15 +500,38 @@
       recalculate();
     }
 
-    // Direct Ctrl+V / Cmd+V paste handler from Google Classroom or Sheets
+    // Clear column marks function
+    function clearColumn(colIdx) {
+      const colName = activeColumns[colIdx].name || `Column ${colIdx + 1}`;
+      if (!confirm(`Are you sure you want to clear all marks for "${colName}"?`)) {
+        return;
+      }
+
+      activeStudents.forEach((st, sIdx) => {
+        st.marks[colIdx] = '';
+        const inputEl = document.querySelector(`input.mark-cell[data-row="${sIdx}"][data-col="${colIdx}"]`);
+        if (inputEl) inputEl.value = '';
+      });
+
+      recalculate();
+    }
+
+    // Remove column entirely
+    function removeColumn(colIdx) {
+      const colName = activeColumns[colIdx].name || `Column ${colIdx + 1}`;
+      if (!confirm(`Delete the entire assessment "${colName}"?`)) {
+        return;
+      }
+      activeColumns.splice(colIdx, 1);
+      activeStudents.forEach(st => st.marks.splice(colIdx, 1));
+      renderTable();
+    }
+
     function handleCellPaste(e, startRow, startCol) {
       const clipboardData = (e.clipboardData || window.clipboardData).getData('text');
       if (!clipboardData) return;
 
-      // Normalize linebreaks and tabs
       const rows = clipboardData.trim().split(/\r\n|\n|\r/);
-      
-      // If only single line without tab, allow normal paste
       if (rows.length === 1 && !rows[0].includes('\t')) {
         return; 
       }
@@ -520,13 +547,9 @@
           const targetCol = startCol + cOffset;
           if (targetCol >= activeColumns.length) return;
 
-          let cleanVal = cellVal.trim();
-          // Remove trailing "/XX" if Classroom exports scores like "14/15"
-          cleanVal = cleanVal.replace(/\/.*$/, '').trim();
-
+          let cleanVal = cellVal.trim().replace(/\/.*$/, '').trim();
           activeStudents[targetRow].marks[targetCol] = cleanVal;
 
-          // Update input UI visually
           const inputEl = document.querySelector(`input.mark-cell[data-row="${targetRow}"][data-col="${targetCol}"]`);
           if (inputEl) inputEl.value = cleanVal;
         });
@@ -535,7 +558,6 @@
       recalculate();
     }
 
-    // Prompt paste fallback for an entire column
     function promptPasteColumn(colIdx) {
       const colName = activeColumns[colIdx].name;
       const text = prompt(`Paste the column of marks copied from Google Classroom for "${colName}":\n(Each score on a new line)`);
@@ -558,12 +580,10 @@
 
       const trimmed = markVal.toString().trim();
 
-      // Check known Ontario Level
       if (LEVEL_MAP[trimmed] !== undefined) {
         return LEVEL_MAP[trimmed];
       }
 
-      // If out of 4 and teacher enters single numbers (e.g. 4 -> Level 4)
       if (outOf === 4) {
         if (trimmed === '4') return LEVEL_MAP['4'];
         if (trimmed === '3') return LEVEL_MAP['3'];
@@ -677,7 +697,6 @@
       a.click();
     }
 
-    // Default load to 7AV
     loadClass('7av');
   </script>
 </body>
