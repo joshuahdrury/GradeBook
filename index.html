@@ -197,7 +197,7 @@
     <header>
       <div>
         <h1>GradeBook Input & Weighting Portal</h1>
-        <p class="subtitle">Cloud auto-sync active. Floating Ontario Level column locked; rightmost Level and Notes configured.</p>
+        <p class="subtitle">Cloud auto-sync active. Dedicated Notes column and unweighted (0%) assignment support enabled.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -580,18 +580,29 @@
       const maxScores = rows[1];
       const weightRow = rows[2];
 
-      const newCols = [];
+      // Sheet columns structure:
+      // Col 0: Student Name
+      // Col 1 to N: Assessment Columns
+      // Col N+1: Weighted Avg
+      // Col N+2: Letter Grade
+      // Col N+3: Ontario Level
+      // Col N+4: Notes & Observations
       const endColIndex = headerNames.length - 4;
+
+      const newCols = [];
       for (let c = 1; c < endColIndex; c++) {
         const colTitle = headerNames[c] || `Test ${c}`;
         const maxVal = parseFloat((maxScores[c] || '').toString().replace(/[^0-9.]/g, '')) || 4;
 
-        // Permanent fix: safely parse decimal and string % weights back to clean integers
-        let rawWeightStr = (weightRow[c] || '').toString().trim();
-        let weightVal = parseFloat(rawWeightStr.replace(/[^0-9.]/g, ''));
+        // Clean weight parsing: permits 0% without overriding to 10%
+        let rawWeightStr = (weightRow[c] !== undefined && weightRow[c] !== null) ? weightRow[c].toString().trim() : '';
+        let cleanedNum = rawWeightStr.replace(/[^0-9.]/g, '');
+        let weightVal = cleanedNum !== '' ? parseFloat(cleanedNum) : 10;
+
         if (isNaN(weightVal)) {
           weightVal = 10;
         } else if (weightVal > 0 && weightVal < 1) {
+          // If stored as 0.05 from older percentage cells, restore to 5
           weightVal = Math.round(weightVal * 100);
         }
 
@@ -608,7 +619,12 @@
         for (let c = 1; c < endColIndex; c++) {
           marks.push(row[c] !== undefined ? row[c].toString().trim() : '');
         }
-        const notes = row[row.length - 1] !== undefined ? row[row.length - 1].toString().trim() : '';
+
+        // Notes is precisely at the final column (Col N+4)
+        const notes = (row[headerNames.length - 1] !== undefined && row[headerNames.length - 1] !== null)
+          ? row[headerNames.length - 1].toString().trim() 
+          : '';
+
         newStudents.push({ name: studentName, notes: notes, marks: marks });
       }
 
@@ -672,7 +688,7 @@
       `;
       trMax.innerHTML = mHtml;
 
-      // 3. Weighting Row
+      // 3. Weighting Row (Permits 0 without overriding)
       let wHtml = `
         <th class="col-student" style="font-size:0.75rem; color:#0369a1;">WEIGHTING (%)</th>
         <th class="col-floating-level"></th>
@@ -680,7 +696,7 @@
       activeColumns.forEach((col, idx) => {
         wHtml += `<th>
           <input class="weight-input" type="number" min="0" max="100" step="1" value="${col.weight}" 
-            onchange="activeColumns[${idx}].weight = parseFloat(this.value) || 0; recalculate(); triggerAutoSave();" /> %
+            onchange="activeColumns[${idx}].weight = (this.value !== '' ? parseFloat(this.value) : 0); recalculate(); triggerAutoSave();" /> %
         </th>`;
       });
       wHtml += `
@@ -910,7 +926,7 @@
 
     function recalculate() {
       let totalWeight = 0;
-      activeColumns.forEach(c => totalWeight += (c.weight || 0));
+      activeColumns.forEach(c => totalWeight += (c.weight !== undefined && c.weight !== null ? c.weight : 0));
       document.getElementById('weightSum').textContent = totalWeight + '%';
       document.getElementById('weightSummaryCell').textContent = totalWeight + '%';
 
@@ -921,8 +937,9 @@
         activeColumns.forEach((col, cIdx) => {
           const rawMark = st.marks[cIdx];
           const pct = parseToPercent(rawMark, col.max);
-          const w = col.weight || 0;
+          const w = (col.weight !== undefined && col.weight !== null) ? col.weight : 0;
 
+          // If weight is 0, it contributes 0 weight and 0 to earnedSum
           if (pct !== null && w > 0) {
             earnedSum += (pct * w);
             appliedWeight += w;
@@ -1018,7 +1035,7 @@
         }
       }
 
-      const newColumn = { name: title, max: maxVal, weight: 10 };
+      const newColumn = { name: title, max: maxVal, weight: 0 };
       activeColumns.splice(insertIdx, 0, newColumn);
       activeStudents.forEach(st => st.marks.splice(insertIdx, 0, ''));
 
