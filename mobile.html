@@ -9,15 +9,14 @@
       --primary: #2563eb;
       --bg: #f1f5f9;
       --surface: #ffffff;
-      --border: #e2e8f0;
+      --border: #cbd5e1;
       --text: #0f172a;
       --text-muted: #64748b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 70px; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 75px; }
 
-    /* Top Sticky Header */
     header {
       position: sticky; top: 0; z-index: 20; background: var(--surface);
       border-bottom: 1px solid var(--border); padding: 0.75rem 1rem;
@@ -34,12 +33,10 @@
     .chip-saved { background: #dcfce7; color: #15803d; }
     .chip-syncing { background: #fef3c7; color: #b45309; }
 
-    /* App Views */
     .view-container { padding: 0.75rem; }
     .view-section { display: none; }
     .view-section.active { display: block; }
 
-    /* Student Cards */
     .student-card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 12px; padding: 0.85rem; margin-bottom: 0.6rem;
@@ -54,7 +51,6 @@
       border-radius: 8px; font-weight: 600; font-size: 0.8rem; cursor: pointer;
     }
 
-    /* Color Badges */
     .level-badge {
       display: inline-block; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 800; font-size: 0.85rem;
     }
@@ -64,7 +60,6 @@
     .level-yellow { background: #fef3c7; color: #b45309; }
     .level-red { background: #fee2e2; color: #b91c1c; }
 
-    /* Weights & Setup View */
     .weight-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
       padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;
@@ -75,7 +70,6 @@
       text-align: center; font-size: 0.85rem; font-weight: 600;
     }
 
-    /* Sliding Drawer / Modal */
     .sheet-overlay {
       position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 50;
       display: none; justify-content: flex-end; flex-direction: column;
@@ -104,7 +98,6 @@
     }
     .touch-mark-input:focus { border-color: var(--primary); outline: none; }
 
-    /* Bottom Navigation Bar */
     .tab-bar {
       position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
       background: var(--surface); border-top: 1px solid var(--border);
@@ -121,7 +114,7 @@
 </head>
 <body>
 
-  <!-- Top Sticky Header -->
+  <!-- Top Bar -->
   <header>
     <div class="header-left">
       <select id="classSelect" class="class-picker" onchange="switchClass(this.value)">
@@ -145,12 +138,18 @@
     <button onclick="promptQuickAddStudent()" style="border:none; background:#e0f2fe; color:#0369a1; padding:0.4rem 0.65rem; border-radius:8px; font-weight:700; font-size:0.8rem;">+ Student</button>
   </header>
 
-  <!-- View 1: Students Roster View -->
+  <!-- View 1: Student Cards List -->
   <div id="viewStudents" class="view-container view-section active">
     <div id="studentsList"></div>
+
+    <div style="text-align: center; margin: 1.5rem 0 2rem 0;">
+      <a href="index.html?view=desktop" style="font-size: 0.8rem; color: #64748b; text-decoration: underline;">
+        Switch to Desktop Spreadsheet View
+      </a>
+    </div>
   </div>
 
-  <!-- View 2: Weights & Setup View -->
+  <!-- View 2: Weights & Out-Of Setup -->
   <div id="viewWeights" class="view-container view-section">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
       <h3 style="font-size:0.95rem;">Assessment Weights & Totals</h3>
@@ -161,6 +160,12 @@
     <div style="margin-top:1.5rem; background:#fff; padding:1rem; border-radius:10px; border:1px solid var(--border);">
       <h4 style="font-size:0.85rem; margin-bottom:4px;">Apps Script Sync URL:</h4>
       <input id="scriptUrlInput" style="width:100%; padding:0.4rem; font-size:0.75rem; border:1px solid #cbd5e1; border-radius:6px;" placeholder="Paste Web App URL..." onchange="saveScriptUrl(this.value)" />
+    </div>
+
+    <div style="text-align: center; margin: 1.5rem 0 2rem 0;">
+      <a href="index.html?view=desktop" style="font-size: 0.8rem; color: #64748b; text-decoration: underline;">
+        Switch to Desktop Spreadsheet View
+      </a>
     </div>
   </div>
 
@@ -185,7 +190,7 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar -->
+  <!-- Navigation Tab Bar -->
   <nav class="tab-bar">
     <button class="tab-btn active" onclick="switchNavTab('students')">
       <span>👥</span> Students
@@ -253,7 +258,34 @@
       { name: "Heat Impact", max: 20, weight: 10 }, { name: "Human Activity", max: 20, weight: 10 }
     ];
 
+    const SCI_8_COLS = [
+      { name: "Variable Check-in", max: 10, weight: 10 }, { name: "Lab Report #1", max: 20, weight: 15 },
+      { name: "Microscope Quiz", max: 30, weight: 15 }, { name: "Unit 2 Test", max: 39, weight: 20 },
+      { name: "Cell Model", max: 16, weight: 10 }, { name: "Test Unit 3", max: 50, weight: 20 },
+      { name: "Fluid Project", max: 12, weight: 10 }
+    ];
+
+    const MATH_COLS = [
+      { name: "Patterning (KU)", max: 4, weight: 15 }, { name: "Algebra (TA)", max: 4, weight: 15 },
+      { name: "2D Geo (C)", max: 4, weight: 15 }, { name: "3D Geo (KU)", max: 4, weight: 15 },
+      { name: "Data Mgmt", max: 4, weight: 15 }, { name: "Exam", max: 30, weight: 25 }
+    ];
+
+    const GENERIC_6_COLS = [
+      { name: "Quiz 1", max: 20, weight: 15 }, { name: "Assignment 1", max: 15, weight: 15 },
+      { name: "Mid-Unit Test", max: 30, weight: 25 }, { name: "Project", max: 40, weight: 25 },
+      { name: "Check-in", max: 10, weight: 20 }
+    ];
+
+    // Complete class definitions with rosters for all 18 classes
     const DEFAULT_CLASSES = {
+      '6av': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6bv': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6cv': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6dv': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6ah': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6bh': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
+      '6ch': { columns: GENERIC_6_COLS, students: ["Sample Student A", "Sample Student B", "Sample Student C"] },
       '7av': {
         columns: SCI_7_COLS,
         students: [
@@ -261,9 +293,46 @@
           { name: "Aronovici; Bradley", marks: ["15", "3", "12.5", "3+", "3+", "25", "13", "14", "14", "50", "17", "16"] },
           { name: "Bockner; Spencer", marks: ["15", "4", "14", "3+", "3", "27", "14", "14.5", "15", "52", "18", "18"] },
           { name: "Bratt; Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"] },
-          { name: "Goodman; Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"] }
+          { name: "Gal; Itay", marks: ["9", "3", "9", "3+/4-", "3", "20", "11", "12", "12", "42", "14", "13"] },
+          { name: "Gerwitz; Olivia", marks: ["15", "3", "13.5", "3", "4/4-", "27", "13", "14", "15", "51", "17", "16"] },
+          { name: "Goldenberg; Oliver", marks: ["15", "3", "14", "4", "3", "26", "14", "14", "14", "53", "17", "17"] },
+          { name: "Goodman; Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"] },
+          { name: "Inspektor; Lev", marks: ["15", "4", "15", "3+/4-", "3+", "28", "14", "15", "15", "55", "19", "18"] },
+          { name: "Katz; Graycie", marks: ["14", "3", "14", "3", "3+", "25", "13", "14", "14", "49", "16", "16"] },
+          { name: "Kaufman; Matthew", marks: ["15", "4", "12", "3", "3+", "26", "13.5", "14", "14", "50", "17", "16"] },
+          { name: "Kerekes; Addison", marks: ["15", "4", "15", "3+", "4", "29", "15", "15", "15", "58", "20", "19"] },
+          { name: "Libin; Warren", marks: ["14", "4", "15", "3", "3-", "25", "13", "13.5", "14", "48", "16", "15"] },
+          { name: "Moxley; Scarlet", marks: ["14", "2", "13.5", "3+/4-", "3", "24", "12.5", "13", "13", "47", "15", "15"] },
+          { name: "Rothschild; Elle", marks: ["15", "4", "15", "4", "4-", "30", "15", "15.5", "16", "57", "19", "19"] },
+          { name: "Ungar; Yanai", marks: ["12", "4", "15", "3+/4-", "3", "26", "13", "14", "14", "50", "17", "16"] },
+          { name: "Valo; Judah", marks: ["15", "4", "15", "3+/4-", "3", "27", "14", "14", "15", "52", "18", "17"] },
+          { name: "Wasserman; Zachary", marks: ["14", "4", "14.5", "3+", "4", "28", "14", "15", "15", "55", "18", "18"] },
+          { name: "Weinerman; Eli", marks: ["15", "2", "10", "4/4-", "4-", "27", "13.5", "14", "14", "51", "17", "17"] },
+          { name: "Zifkin; Lily", marks: ["15", "4", "15", "4/4-", "3+", "28", "14.5", "15", "15", "54", "18", "18"] }
         ]
-      }
+      },
+      '7bv': { columns: SCI_7_COLS, students: ["Alter; Marlowe", "Balboul; Ryan", "Binder; Abby", "Borer; Maya", "Cherun; Ellie", "Fonn; Jared", "Gerwitz; Brody", "Halbrich; Lia", "Katz; Austin", "Kremer; Erez", "Kroft; Chelsea", "Majerovits; Logan", "Naiberg; Sienna", "Reiter; Maxim", "Rubenstein; Leif", "Rubinoff; Avery", "Scholl; Maxwell", "Tropepe; Noah", "Vilner; Charlie"] },
+      '7cv': { columns: SCI_7_COLS, students: ["Binder; Ella", "Carman; Benjamin", "Fine; Theo", "Goldenberg; Justin", "Goldenberg; Leo", "Hartmann; Jonah", "Hershorn; Joseph", "Herzig; Willow", "Hirsh; Emma", "Leibowitz; Joshua", "Lepofsky; Jonah", "Levy; Atai", "Orzech; Madison", "Rosen; Jake", "Schneiderman; Yale", "Schwartz; Olivia", "Selbo; Ariel", "Tkatch; Hannah", "Unruch; Sam", "Wagman; Ryan"] },
+      '7dv': { columns: SCI_7_COLS, students: ["Burger; Shael", "Burko; Sydney", "Cohen; Zev", "Czutrin; Mark", "Dalgorf; Blake", "Eisen; Riley", "Finkelstein; Charles", "Goldhar; Jack", "Goodman; Jack", "Goren-Poole; Sarah", "Gozlan; Dylan", "Greenspoon; Samantha", "Hurwen; Noah", "Kuretzky; Everleigh", "Manna; Gabi", "Ostro; Hayden", "Reiff; Adelaide", "Shiff; Samuel", "Slama; Leo", "Staviss; Gabriel"] },
+      '7ah': { columns: MATH_COLS, students: ["Adelstein; Ryann", "Bergson; Joel", "Bockner; Hanna", "Cash; Henry", "Cohen; Micah", "Dalgorf; Ethan", "Detsky; Aryeh", "Dubin; Emma", "Kellerstein; Eden", "Ksantini-Deckel; Gaya", "Lanys; Ari", "Lieberman; Blake", "Luques; Ayala", "Margau; Madison", "Matlin; Tyler", "Perry; Liam", "Rosenthal; Brody", "Rotzang; Michael", "Selby; Cooper", "Silber; Olivia", "Steinberg; Yossi", "Steinman; Eva", "Vilner; Madeline"] },
+      '7bh': { columns: MATH_COLS, students: ["Student 1", "Student 2", "Student 3", "Student 4", "Student 5", "Student 6", "Student 7", "Student 8"] },
+      '8av': {
+        columns: SCI_8_COLS,
+        students: [
+          { name: "Applebaum; Parker", marks: ["9", "18", "27", "35", "15", "46", "11"] },
+          { name: "Bacal; Catherine", marks: ["10", "19", "28", "37", "16", "48", "12"] },
+          { name: "Ball; Hudson", marks: ["8", "16", "24", "31", "13", "40", "10"] },
+          { name: "Baruch; Max", marks: ["9.5", "17", "26", "34", "14", "44", "11"] },
+          { name: "Cole; Noah", marks: ["9", "18", "26", "35", "15", "45", "11"] },
+          "Finkelstein; William", "Grinstein; Riley", "Grossman; Cameron", "Katz; Jack", "Kraft; Hyla", "Leibson; Liya", "Levy Dror; Amielle", "Margau; Kayla", "Moskowitz; Zoe", "Ostro; Avery", "Pilarski; Jayme", "Reidiboim; Samantha", "Sacks; Cole", "Shahak-Broder; Alma", "Singer; Radley", "Weintraub; Nediva"
+        ]
+      },
+      '8bv': { columns: SCI_8_COLS, students: ["Blum; Daphne", "Cayen; Marlowe", "Cherun; Aiden", "Chisick; Jacob", "Elfassy; Rayna", "Erlich; Blake", "Foster; Allie", "Glick; Reuben", "Gutman; Avianna", "Leonoff; Isabelle", "Levine; Aubrey", "Mandowsky; Isla", "Mann; Lyla", "Reidiboim; Damian", "Rezmovitz; Ezra", "Rozhnov; Olivia", "Silber; Naomi", "Silver; Alexa", "Smith; Samuel", "Wilkins; Spencer"] },
+      '8cv': { columns: SCI_8_COLS, students: ["Brass; Harper", "Closner; Quinn", "Cooperberg; Jordan", "Driman; Hudson", "Drucker; Benjamin", "Ellison; Bradley", "Freeman; Rachel", "Fryer; Hallie", "Goldstein; Alexander", "Gurau; Greyson", "Hason; Emily", "Katz; Max", "Lanel; Ella", "Lieberman; Noah", "Rabie; Aden", "Redlick; Julian", "Silber; Andrew", "Steen; Emily", "Steinman; Noa", "Vilner; Mackenzie", "Waugh; Emily"] },
+      '8dv': { columns: SCI_8_COLS, students: ["Emma Abramsohn", "Cohen; Brayden", "Detsky; Eliav", "Gleicher; Jamie", "Greenspoon; Mara", "Kushner; Shayna", "Matlin; Charlie", "Mazur; Esther", "Mocon; Lucy", "Moffs; Charlie", "Moxley; Sadie", "Perry; Danielle", "Rivietz; Harper", "Shahak-Broder; Noam", "Silber; Charlotte", "Silber; Talia", "Sussman; Max", "Tamir Weinberg; Yael", "Trager; Jenny", "Weinberg; Joshua", "Wolfe; Spencer"] },
+      '8ah': { columns: MATH_COLS, students: ["Student A", "Student B", "Student C", "Student D"] },
+      '8bh': { columns: MATH_COLS, students: ["Student A", "Student B", "Student C", "Student D"] },
+      '8ch': { columns: MATH_COLS, students: ["Student X", "Student Y", "Student Z"] }
     };
 
     let currentClassKey = localStorage.getItem('last_active_class') || '7av';
@@ -326,8 +395,13 @@
     }
 
     function switchClass(classKey) {
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+        executeCloudSync();
+      }
       currentClassKey = classKey;
       localStorage.setItem('last_active_class', classKey);
+      document.getElementById('classSelect').value = classKey;
       loadClass(classKey);
     }
 
@@ -337,19 +411,30 @@
         try {
           const parsed = JSON.parse(localData);
           activeColumns = parsed.columns;
-          activeStudents = parsed.students;
+          activeStudents = parsed.students.map(st => ({
+            name: st.name,
+            notes: st.notes || '',
+            marks: st.marks
+          }));
           renderApp();
-        } catch (e) {}
+        } catch (e) { console.error('Local cache error:', e); }
       } else {
         const cls = DEFAULT_CLASSES[classKey] || DEFAULT_CLASSES['7av'];
         activeColumns = JSON.parse(JSON.stringify(cls.columns));
-        activeStudents = cls.students.map(st => ({
-          name: st.name, notes: st.notes || '', marks: [...st.marks]
-        }));
+        activeStudents = cls.students.map(st => {
+          if (typeof st === 'string') {
+            return { name: st, notes: '', marks: new Array(activeColumns.length).fill('') };
+          } else {
+            const filled = [...st.marks];
+            while (filled.length < activeColumns.length) filled.push('');
+            return { name: st.name, notes: st.notes || '', marks: filled };
+          }
+        });
         renderApp();
       }
 
       if (APPS_SCRIPT_URL) {
+        setStatus('☁️ Loading...', true);
         try {
           const res = await fetch(`${APPS_SCRIPT_URL}?className=${classKey.toUpperCase()}`);
           const json = await res.json();
@@ -357,8 +442,12 @@
             parseSheetRows(json.data);
             persistLocal();
             setStatus('✓ Synced', false);
+          } else {
+            setStatus('✓ Synced', false);
           }
-        } catch (e) {}
+        } catch (e) {
+          setStatus('✓ Local Cache', false);
+        }
       }
     }
 
@@ -485,7 +574,6 @@
       });
     }
 
-    /* Drawer Actions */
     function openGradingDrawer(sIdx) {
       selectedStudentIdx = sIdx;
       const st = activeStudents[sIdx];
@@ -541,7 +629,6 @@
       if (e.target.id === 'gradingDrawer') closeGradingDrawer();
     }
 
-    /* Quick Operations */
     function promptQuickAddStudent() {
       const name = prompt("Enter student name:");
       if (!name) return;
@@ -569,7 +656,6 @@
       triggerAutoSave();
     }
 
-    /* Tab Switcher */
     function switchNavTab(tab) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
@@ -583,14 +669,9 @@
       }
     }
 
-    // Init
     if (APPS_SCRIPT_URL) document.getElementById('scriptUrlInput').value = APPS_SCRIPT_URL;
     document.getElementById('classSelect').value = currentClassKey;
     loadClass(currentClassKey);
   </script>
 </body>
-<a href="index.html" style="display:block; text-align:center; margin:1rem; font-size:0.8rem; color:#64748b;">
-  Switch to Desktop Spreadsheet View
-</a>
-
 </html>
