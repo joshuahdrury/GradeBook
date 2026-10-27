@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Teacher Gradebook - Desktop Portal</title>
 
-  <!-- Instant, Reliable Mobile Detection & Redirection -->
+  <!-- Instant Mobile Detection & Redirection -->
   <script>
     (function() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -108,7 +108,7 @@
     thead th.col-summary { background: #e2e8f0; }
 
     .col-notes-right {
-      background: var(--surface); min-width: 240px; max-width: 320px; text-align: left;
+      background: var(--surface); min-width: 260px; max-width: 340px; text-align: left;
     }
     thead th.col-notes-right { background: #e2e8f0; text-align: center; }
 
@@ -421,7 +421,6 @@
       return 'level-red';
     }
 
-    // Helper: extracts specific assignment note from the student notes string
     function getAssignmentNote(studentNotes, assignmentName) {
       if (!studentNotes || !assignmentName) return null;
       const cleanTarget = assignmentName.trim().toLowerCase();
@@ -556,6 +555,12 @@
     }
 
     function triggerAutoSave() {
+      // Sync local object state from live DOM inputs first
+      activeStudents.forEach((st, sIdx) => {
+        const inputEl = document.getElementById(`notes-${sIdx}`);
+        if (inputEl) st.notes = inputEl.value;
+      });
+
       persistLocal();
       setStatus('● Typing... (pending sync)', 'status-saving');
       clearTimeout(saveTimeout);
@@ -572,6 +577,12 @@
         setStatus('✓ Saved locally (Cloud URL missing)', 'status-saved');
         return;
       }
+
+      // Sync active notes directly from DOM input values before payload creation
+      activeStudents.forEach((st, sIdx) => {
+        const inputEl = document.getElementById(`notes-${sIdx}`);
+        if (inputEl) st.notes = inputEl.value;
+      });
 
       isSaving = true;
       setStatus('☁️ Saving to Google Sheets...', 'status-saving');
@@ -668,7 +679,27 @@
       const headerNames = rows[0];
       const maxScores = rows[1];
       const weightRow = rows[2];
-      const endColIndex = headerNames.length - 4;
+
+      // Dynamically locate the Notes column by its header name
+      let notesColIdx = -1;
+      for (let i = headerNames.length - 1; i >= 0; i--) {
+        if (headerNames[i] && headerNames[i].toLowerCase().includes('note')) {
+          notesColIdx = i;
+          break;
+        }
+      }
+      if (notesColIdx === -1) notesColIdx = headerNames.length - 1;
+
+      // Locate where assessments end (first summary column: Weighted Avg)
+      let endColIndex = -1;
+      for (let i = 1; i < headerNames.length; i++) {
+        const h = (headerNames[i] || '').toLowerCase();
+        if (h.includes('weighted') || h.includes('letter') || h.includes('ontario')) {
+          endColIndex = i;
+          break;
+        }
+      }
+      if (endColIndex === -1) endColIndex = notesColIdx - 3;
 
       const newCols = [];
       for (let c = 1; c < endColIndex; c++) {
@@ -699,8 +730,9 @@
           marks.push(row[c] !== undefined ? row[c].toString().trim() : '');
         }
 
-        const notes = (row[headerNames.length - 1] !== undefined && row[headerNames.length - 1] !== null)
-          ? row[headerNames.length - 1].toString().trim() 
+        // Pull notes precisely from the identified column index
+        const notes = (notesColIdx < row.length && row[notesColIdx] !== undefined)
+          ? row[notesColIdx].toString().trim() 
           : '';
 
         newStudents.push({ name: studentName, notes: notes, marks: marks });
@@ -833,7 +865,9 @@
         <td class="col-summary" id="level-right-${sIdx}">-</td>
         <td class="col-notes-right">
           <input class="notes-input" id="notes-${sIdx}" value="${student.notes || ''}" 
-            placeholder="Add note or [Test]: [note]..." onchange="updateStudentNotes(${sIdx}, this.value)" />
+            placeholder="Add note or [Test]: [note]..." 
+            oninput="updateStudentNotes(${sIdx}, this.value)"
+            onchange="updateStudentNotes(${sIdx}, this.value)" />
         </td>
         <td>
           <button class="btn-col-action" title="Remove student" onclick="removeStudent(${sIdx})" style="color:#ef4444;">🗑️</button>
@@ -850,11 +884,28 @@
 
     function updateStudentNotes(sIdx, text) {
       activeStudents[sIdx].notes = text;
-      renderTable();
+      // Re-evaluate tooltips on marks cells
+      activeColumns.forEach((col, cIdx) => {
+        const cellWrapper = document.querySelector(`input.mark-cell[data-row="${sIdx}"][data-col="${cIdx}"]`)?.parentElement;
+        if (cellWrapper) {
+          const note = getAssignmentNote(text, col.name);
+          cellWrapper.classList.toggle('has-note', !!note);
+          let tooltip = cellWrapper.querySelector('.note-tooltip');
+          if (note) {
+            if (!tooltip) {
+              tooltip = document.createElement('div');
+              tooltip.className = 'note-tooltip';
+              cellWrapper.appendChild(tooltip);
+            }
+            tooltip.innerHTML = `<b>${col.name}:</b><br>${note}`;
+          } else if (tooltip) {
+            tooltip.remove();
+          }
+        }
+      });
       triggerAutoSave();
     }
 
-    // Right-click helper: sets or updates assignment note into the student's Notes column
     function promptAssignmentNote(e, studentIdx, colIdx) {
       e.preventDefault();
       const student = activeStudents[studentIdx];
@@ -945,8 +996,7 @@
         activeStudents[currentModalStudentIdx].notes = val;
         const mainInput = document.getElementById(`notes-${currentModalStudentIdx}`);
         if (mainInput) mainInput.value = val;
-        renderTable();
-        triggerAutoSave();
+        updateStudentNotes(currentModalStudentIdx, val);
       }
     }
 
