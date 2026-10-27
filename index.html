@@ -149,7 +149,7 @@
     }
     .btn-col-action:hover { background: #cbd5e1; opacity: 1; }
 
-    /* Ontario Level Badge Colors */
+    /* Custom Color Threshold Badges */
     .level-badge {
       display: inline-block; padding: 0.25rem 0.55rem; border-radius: 6px; font-weight: 800; font-size: 0.825rem;
     }
@@ -164,6 +164,62 @@
     .weight-total-bar {
       padding: 0.6rem 1rem; background: #f8fafc; border-top: 1px solid var(--border);
       display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; flex-wrap: wrap; gap: 0.5rem;
+    }
+
+    /* Assignment-Specific Note Tooltip & Indicator */
+    .mark-cell-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+    .has-note::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 0;
+      height: 0;
+      border-top: 7px solid #2563eb;
+      border-left: 7px solid transparent;
+      pointer-events: none;
+    }
+    .note-tooltip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1.35;
+      white-space: normal;
+      min-width: 140px;
+      max-width: 230px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      z-index: 50;
+      pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      text-align: left;
+    }
+    .note-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px;
+      border-style: solid;
+      border-color: #0f172a transparent transparent transparent;
+    }
+    .mark-cell-wrapper:hover .note-tooltip {
+      visibility: visible;
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
     }
 
     /* Modal Styling */
@@ -262,7 +318,7 @@
           </span>
         </div>
         <span style="color: var(--text-muted);">
-          <b>Shortcuts:</b> 📊 At-a-Glance Pop-up | 📋 Paste Column | 🧹 Clear | <b>Ctrl+V</b> to fill down
+          <b>Shortcuts:</b> 📊 At-a-Glance | 📋 Paste Column | 🧹 Clear | <b>Right-click mark</b> to add assignment note | <b>Ctrl+V</b> fill down
         </span>
       </div>
     </div>
@@ -363,6 +419,25 @@
       if (levelStr === '3') return 'level-green';
       if (levelStr === '3-' || levelStr === '2+') return 'level-yellow';
       return 'level-red';
+    }
+
+    // Helper: extracts specific assignment note from the student notes string
+    function getAssignmentNote(studentNotes, assignmentName) {
+      if (!studentNotes || !assignmentName) return null;
+      const cleanTarget = assignmentName.trim().toLowerCase();
+      const segments = studentNotes.split(/[;\n|]/);
+
+      for (let segment of segments) {
+        const colonIdx = segment.indexOf(':');
+        if (colonIdx !== -1) {
+          const parsedTitle = segment.substring(0, colonIdx).trim().toLowerCase();
+          const noteContent = segment.substring(colonIdx + 1).trim();
+          if (parsedTitle === cleanTarget || cleanTarget.includes(parsedTitle) || parsedTitle.includes(cleanTarget)) {
+            return noteContent;
+          }
+        }
+      }
+      return null;
     }
 
     const SCI_7_COLS = [
@@ -733,14 +808,22 @@
 
       activeColumns.forEach((col, cIdx) => {
         const val = student.marks[cIdx] !== undefined ? student.marks[cIdx] : '';
+        const assignmentNote = getAssignmentNote(student.notes, col.name);
+        const hasNoteClass = assignmentNote ? 'has-note' : '';
+
         html += `<td>
-          <input class="cell-input mark-cell" 
-            data-row="${sIdx}" 
-            data-col="${cIdx}" 
-            value="${val}" 
-            placeholder="-" 
-            onpaste="handleCellPaste(event, ${sIdx}, ${cIdx})"
-            onchange="updateMark(${sIdx}, ${cIdx}, this.value)" />
+          <div class="mark-cell-wrapper ${hasNoteClass}" 
+               oncontextmenu="promptAssignmentNote(event, ${sIdx}, ${cIdx})"
+               title="${assignmentNote ? '' : 'Right-click to attach assignment note'}">
+            <input class="cell-input mark-cell" 
+              data-row="${sIdx}" 
+              data-col="${cIdx}" 
+              value="${val}" 
+              placeholder="-" 
+              onpaste="handleCellPaste(event, ${sIdx}, ${cIdx})"
+              onchange="updateMark(${sIdx}, ${cIdx}, this.value)" />
+            ${assignmentNote ? `<div class="note-tooltip"><b>${col.name}:</b><br>${assignmentNote}</div>` : ''}
+          </div>
         </td>`;
       });
 
@@ -750,7 +833,7 @@
         <td class="col-summary" id="level-right-${sIdx}">-</td>
         <td class="col-notes-right">
           <input class="notes-input" id="notes-${sIdx}" value="${student.notes || ''}" 
-            placeholder="Add note..." onchange="updateStudentNotes(${sIdx}, this.value)" />
+            placeholder="Add note or [Test]: [note]..." onchange="updateStudentNotes(${sIdx}, this.value)" />
         </td>
         <td>
           <button class="btn-col-action" title="Remove student" onclick="removeStudent(${sIdx})" style="color:#ef4444;">🗑️</button>
@@ -767,6 +850,41 @@
 
     function updateStudentNotes(sIdx, text) {
       activeStudents[sIdx].notes = text;
+      renderTable();
+      triggerAutoSave();
+    }
+
+    // Right-click helper: sets or updates assignment note into the student's Notes column
+    function promptAssignmentNote(e, studentIdx, colIdx) {
+      e.preventDefault();
+      const student = activeStudents[studentIdx];
+      const col = activeColumns[colIdx];
+      const existingNote = getAssignmentNote(student.notes, col.name) || '';
+
+      const newNote = prompt(`Note for ${student.name} on "${col.name}":`, existingNote);
+      if (newNote === null) return;
+
+      let currentNotes = student.notes || '';
+      const cleanTitle = col.name.trim();
+      const pattern = new RegExp(`(^|[;\\n|])\\s*${cleanTitle}\\s*:[^;\\n|]*`, 'i');
+
+      if (newNote.trim() === '') {
+        currentNotes = currentNotes.replace(pattern, '').replace(/^[;\s]+|[;\s]+$/g, '');
+      } else if (pattern.test(currentNotes)) {
+        currentNotes = currentNotes.replace(pattern, `$1${cleanTitle}: ${newNote.trim()}`);
+      } else {
+        currentNotes = currentNotes.trim();
+        if (currentNotes && !currentNotes.endsWith(';') && !currentNotes.endsWith('\n')) {
+          currentNotes += '; ';
+        }
+        currentNotes += `${cleanTitle}: ${newNote.trim()}`;
+      }
+
+      activeStudents[studentIdx].notes = currentNotes;
+      const noteInput = document.getElementById(`notes-${studentIdx}`);
+      if (noteInput) noteInput.value = currentNotes;
+
+      renderTable();
       triggerAutoSave();
     }
 
@@ -827,6 +945,7 @@
         activeStudents[currentModalStudentIdx].notes = val;
         const mainInput = document.getElementById(`notes-${currentModalStudentIdx}`);
         if (mainInput) mainInput.value = val;
+        renderTable();
         triggerAutoSave();
       }
     }
