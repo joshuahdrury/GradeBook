@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Teacher Gradebook - Desktop Portal</title>
 
-  <!-- Instant Mobile Detection & Redirection -->
+  <!-- Instant, Reliable Mobile Detection & Redirection -->
   <script>
     (function() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -269,7 +269,7 @@
     <header>
       <div>
         <h1>GradeBook Input & Weighting Portal</h1>
-        <p class="subtitle">Cloud auto-sync active. Dual-sticky view, 0% weighting support, and notes synchronization.</p>
+        <p class="subtitle">Cloud auto-sync active. Notes and 0% weights persist directly to Google Sheets.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -313,12 +313,12 @@
           <span><b>Total Active Weight:</b> <span id="weightSum">100%</span></span>
           <span style="margin-left: 1.5rem; color: var(--text-muted);">
             Apps Script Web App URL: 
-            <input id="scriptUrlInput" class="sync-url" style="width: 300px; font-size: 0.75rem; padding: 2px 6px;" 
+            <input id="scriptUrlInput" class="sync-url" style="width: 320px; font-size: 0.75rem; padding: 2px 6px;" 
               placeholder="Paste Apps Script Web App URL..." onchange="saveScriptUrl(this.value)" />
           </span>
         </div>
         <span style="color: var(--text-muted);">
-          <b>Shortcuts:</b> 📊 At-a-Glance | 📋 Paste Column | 🧹 Clear | <b>Right-click mark</b> to add assignment note | <b>Ctrl+V</b> fill down
+          <b>Shortcuts:</b> 📊 At-a-Glance | 📋 Paste Column | 🧹 Clear | <b>Right-click mark</b> to add note | <b>Ctrl+V</b> fill down
         </span>
       </div>
     </div>
@@ -555,7 +555,7 @@
     }
 
     function triggerAutoSave() {
-      // Sync local object state from live DOM inputs first
+      // 1. Immediately harvest notes directly from all active text inputs
       activeStudents.forEach((st, sIdx) => {
         const inputEl = document.getElementById(`notes-${sIdx}`);
         if (inputEl) st.notes = inputEl.value;
@@ -564,7 +564,7 @@
       persistLocal();
       setStatus('● Typing... (pending sync)', 'status-saving');
       clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(() => { executeCloudSync(); }, 1500);
+      saveTimeout = setTimeout(() => { executeCloudSync(); }, 1200);
     }
 
     function persistLocal() {
@@ -578,7 +578,7 @@
         return;
       }
 
-      // Sync active notes directly from DOM input values before payload creation
+      // Re-read notes from DOM before sending
       activeStudents.forEach((st, sIdx) => {
         const inputEl = document.getElementById(`notes-${sIdx}`);
         if (inputEl) st.notes = inputEl.value;
@@ -592,7 +592,7 @@
         columns: activeColumns,
         students: activeStudents.map((st, idx) => ({
           name: st.name,
-          notes: st.notes || '',
+          notes: (st.notes !== undefined && st.notes !== null) ? st.notes : '',
           marks: st.marks,
           avg: document.getElementById(`avg-${idx}`) ? document.getElementById(`avg-${idx}`).innerText : '',
           letter: document.getElementById(`badge-${idx}`) ? document.getElementById(`badge-${idx}`).innerText : '',
@@ -601,10 +601,11 @@
       };
 
       try {
+        // Send as text/plain so CORS preflight does not interfere with Google Apps Script
         await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
 
@@ -636,7 +637,7 @@
           activeColumns = parsed.columns;
           activeStudents = parsed.students.map(st => ({
             name: st.name,
-            notes: st.notes || '',
+            notes: (st.notes !== undefined && st.notes !== null) ? st.notes : '',
             marks: st.marks
           }));
           renderTable();
@@ -680,7 +681,7 @@
       const maxScores = rows[1];
       const weightRow = rows[2];
 
-      // Dynamically locate the Notes column by its header name
+      // Detect the Notes column by header name
       let notesColIdx = -1;
       for (let i = headerNames.length - 1; i >= 0; i--) {
         if (headerNames[i] && headerNames[i].toLowerCase().includes('note')) {
@@ -690,7 +691,7 @@
       }
       if (notesColIdx === -1) notesColIdx = headerNames.length - 1;
 
-      // Locate where assessments end (first summary column: Weighted Avg)
+      // Locate where assessment columns end
       let endColIndex = -1;
       for (let i = 1; i < headerNames.length; i++) {
         const h = (headerNames[i] || '').toLowerCase();
@@ -730,7 +731,6 @@
           marks.push(row[c] !== undefined ? row[c].toString().trim() : '');
         }
 
-        // Pull notes precisely from the identified column index
         const notes = (notesColIdx < row.length && row[notesColIdx] !== undefined)
           ? row[notesColIdx].toString().trim() 
           : '';
@@ -846,7 +846,7 @@
         html += `<td>
           <div class="mark-cell-wrapper ${hasNoteClass}" 
                oncontextmenu="promptAssignmentNote(event, ${sIdx}, ${cIdx})"
-               title="${assignmentNote ? '' : 'Right-click to attach assignment note'}">
+               title="${assignmentNote ? '' : 'Right-click to attach note'}">
             <input class="cell-input mark-cell" 
               data-row="${sIdx}" 
               data-col="${cIdx}" 
@@ -884,7 +884,7 @@
 
     function updateStudentNotes(sIdx, text) {
       activeStudents[sIdx].notes = text;
-      // Re-evaluate tooltips on marks cells
+      // Re-evaluate tooltips on marks cells live
       activeColumns.forEach((col, cIdx) => {
         const cellWrapper = document.querySelector(`input.mark-cell[data-row="${sIdx}"][data-col="${cIdx}"]`)?.parentElement;
         if (cellWrapper) {
@@ -1212,7 +1212,7 @@
 
     function exportCSV() {
       const currentClass = currentClassKey.toUpperCase();
-      let csv = 'Student Name,Ontario Level,' + activeColumns.map(c => `"${c.name}"`).join(',') + ',Weighted Average,Letter Grade,Ontario Level (Right),Notes\n';
+      let csv = 'Student Name,Ontario Level,' + activeColumns.map(c => `"${c.name}"`).join(',') + ',Weighted Average,Letter Grade,Ontario Level (Right),Notes & Observations\n';
       csv += 'Out Of,Max 4,' + activeColumns.map(c => c.max).join(',') + ',100%,-,Max 4,-\n';
       csv += 'Weight,-,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-,-\n';
 
