@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GradeBook Mobile</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 70px; }
+
+    /* Top Sticky Header */
+    header {
+      position: sticky; top: 0; z-index: 20; background: var(--surface);
+      border-bottom: 1px solid var(--border); padding: 0.75rem 1rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    select.class-picker {
+      padding: 0.4rem 0.6rem; border-radius: 8px; border: 1.5px solid var(--border);
+      font-size: 0.9rem; font-weight: 700; background: #f8fafc; color: var(--text);
+    }
+    .sync-chip {
+      font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 20px;
+    }
+    .chip-saved { background: #dcfce7; color: #15803d; }
+    .chip-syncing { background: #fef3c7; color: #b45309; }
+
+    /* App Views */
+    .view-container { padding: 0.75rem; }
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    /* Student Cards */
+    .student-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 0.85rem; margin-bottom: 0.6rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center;
+    }
+    .student-info h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .student-sub { font-size: 0.8rem; color: var(--text-muted); }
+
+    .card-right { display: flex; align-items: center; gap: 8px; }
+    .btn-grade {
+      background: var(--primary); color: #fff; border: none; padding: 0.45rem 0.75rem;
+      border-radius: 8px; font-weight: 600; font-size: 0.8rem; cursor: pointer;
+    }
+
+    /* Color Badges */
+    .level-badge {
+      display: inline-block; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 800; font-size: 0.85rem;
+    }
+    .level-blue { background: #dbeafe; color: #1d4ed8; }
+    .level-teal { background: #ccfbf1; color: #0f766e; }
+    .level-green { background: #dcfce7; color: #15803d; }
+    .level-yellow { background: #fef3c7; color: #b45309; }
+    .level-red { background: #fee2e2; color: #b91c1c; }
+
+    /* Weights & Setup View */
+    .weight-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    .weight-inputs { display: flex; gap: 8px; align-items: center; }
+    .small-input {
+      width: 55px; padding: 0.35rem; border-radius: 6px; border: 1px solid var(--border);
+      text-align: center; font-size: 0.85rem; font-weight: 600;
+    }
+
+    /* Sliding Drawer / Modal */
+    .sheet-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 50;
+      display: none; justify-content: flex-end; flex-direction: column;
+    }
+    .bottom-sheet {
+      background: var(--surface); border-radius: 18px 18px 0 0;
+      max-height: 88vh; display: flex; flex-direction: column; overflow: hidden;
+      animation: slideUp 0.22s ease-out;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .sheet-header {
+      padding: 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
+    }
+    .sheet-body { padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.85rem; }
+
+    .mark-row {
+      display: flex; justify-content: space-between; align-items: center; background: #f8fafc;
+      padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--border);
+    }
+    .mark-label { font-size: 0.85rem; font-weight: 600; max-width: 60%; }
+    .mark-label span { font-size: 0.75rem; color: var(--text-muted); font-weight: normal; display: block; }
+    .touch-mark-input {
+      width: 80px; padding: 0.45rem; border-radius: 6px; border: 1.5px solid #cbd5e1;
+      text-align: center; font-size: 0.95rem; font-weight: 700; background: #fff;
+    }
+    .touch-mark-input:focus { border-color: var(--primary); outline: none; }
+
+    /* Bottom Navigation Bar */
+    .tab-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
+      background: var(--surface); border-top: 1px solid var(--border);
+      display: flex; justify-content: space-around; align-items: center; z-index: 30;
+    }
+    .tab-btn {
+      background: transparent; border: none; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600;
+      color: var(--text-muted); cursor: pointer; flex: 1; height: 100%;
+    }
+    .tab-btn.active { color: var(--primary); }
+    .tab-btn span { font-size: 1.15rem; margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Header -->
+  <header>
+    <div class="header-left">
+      <select id="classSelect" class="class-picker" onchange="switchClass(this.value)">
+        <optgroup label="Grade 6">
+          <option value="6av">6AV</option><option value="6bv">6BV</option><option value="6cv">6CV</option>
+          <option value="6dv">6DV</option><option value="6ah">6AH</option><option value="6bh">6BH</option>
+          <option value="6ch">6CH</option>
+        </optgroup>
+        <optgroup label="Grade 7">
+          <option value="7av" selected>7AV</option><option value="7bv">7BV</option><option value="7cv">7CV</option>
+          <option value="7dv">7DV</option><option value="7ah">7AH</option><option value="7bh">7BH</option>
+        </optgroup>
+        <optgroup label="Grade 8">
+          <option value="8av">8AV</option><option value="8bv">8BV</option><option value="8cv">8CV</option>
+          <option value="8dv">8DV</option><option value="8ah">8AH</option><option value="8bh">8BH</option>
+          <option value="8ch">8CH</option>
+        </optgroup>
+      </select>
+      <span id="saveStatus" class="sync-chip chip-saved">✓ Synced</span>
+    </div>
+    <button onclick="promptQuickAddStudent()" style="border:none; background:#e0f2fe; color:#0369a1; padding:0.4rem 0.65rem; border-radius:8px; font-weight:700; font-size:0.8rem;">+ Student</button>
+  </header>
+
+  <!-- View 1: Students Roster View -->
+  <div id="viewStudents" class="view-container view-section active">
+    <div id="studentsList"></div>
+  </div>
+
+  <!-- View 2: Weights & Setup View -->
+  <div id="viewWeights" class="view-container view-section">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+      <h3 style="font-size:0.95rem;">Assessment Weights & Totals</h3>
+      <button onclick="distributeEvenly()" style="background:#e2e8f0; border:none; padding:0.35rem 0.6rem; border-radius:6px; font-size:0.75rem; font-weight:700;">Even Out</button>
+    </div>
+    <div id="weightsList"></div>
+    <button onclick="promptAddAssessment()" style="width:100%; padding:0.65rem; margin-top:0.5rem; background:var(--surface); border:1.5px dashed #94a3b8; border-radius:8px; font-weight:700; color:#475569;">+ Add Assessment</button>
+    <div style="margin-top:1.5rem; background:#fff; padding:1rem; border-radius:10px; border:1px solid var(--border);">
+      <h4 style="font-size:0.85rem; margin-bottom:4px;">Apps Script Sync URL:</h4>
+      <input id="scriptUrlInput" style="width:100%; padding:0.4rem; font-size:0.75rem; border:1px solid #cbd5e1; border-radius:6px;" placeholder="Paste Web App URL..." onchange="saveScriptUrl(this.value)" />
+    </div>
+  </div>
+
+  <!-- Bottom Sheet Drawer for Grading One Student -->
+  <div id="gradingDrawer" class="sheet-overlay" onclick="handleDrawerBackdrop(event)">
+    <div class="bottom-sheet">
+      <div class="sheet-header">
+        <div>
+          <h3 id="drawerStudentName" style="font-size:1.05rem;">Student</h3>
+          <span id="drawerAveragePill" style="font-size:0.8rem; font-weight:700; color:var(--primary);">-</span>
+        </div>
+        <button onclick="closeGradingDrawer()" style="background:transparent; border:none; font-size:1.5rem; color:#64748b;">&times;</button>
+      </div>
+      <div class="sheet-body">
+        <div>
+          <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">NOTES / OBSERVATIONS:</label>
+          <input id="drawerNotes" style="width:100%; padding:0.45rem; border:1px solid var(--border); border-radius:8px; font-size:0.85rem;" placeholder="Add teacher note..." onchange="saveDrawerNote(this.value)" />
+        </div>
+        <hr style="border:none; border-top:1px solid var(--border);" />
+        <div id="drawerAssessmentsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" onclick="switchNavTab('students')">
+      <span>👥</span> Students
+    </button>
+    <button class="tab-btn" onclick="switchNavTab('weights')">
+      <span>⚙️</span> Setup & Weights
+    </button>
+  </nav>
+
+  <script>
+    let APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || "";
+
+    const LEVEL_MAP = {
+      '4+': 95, '4': 95, '4-': 90, '4/4-': 92.5, '4-/3+': 87.5, '3+/4-': 87.5,
+      '3+': 85, '3': 80, '3/3+': 82.5, '3+/3': 82.5, '3-': 72, '3-/2+': 69.5,
+      '2+': 67, '2': 64, '2-': 60, '2/2+': 62, '1+': 57, '1': 54, '1-': 50,
+      'R': 35, '0': 0
+    };
+
+    function getOntarioLevel(pct) {
+      if (pct >= 95) return '4';
+      if (pct >= 90) return '4-';
+      if (pct >= 85) return '3+';
+      if (pct >= 75) return '3';
+      if (pct >= 70) return '3-';
+      if (pct >= 67) return '2+';
+      if (pct >= 63) return '2';
+      if (pct >= 60) return '2-';
+      if (pct >= 57) return '1+';
+      if (pct >= 53) return '1';
+      if (pct >= 50) return '1-';
+      return 'R';
+    }
+
+    function getLetterGrade(pct) {
+      if (pct >= 95) return 'A';
+      if (pct >= 90) return 'A-';
+      if (pct >= 85) return 'B+';
+      if (pct >= 75) return 'B';
+      if (pct >= 70) return 'B-';
+      if (pct >= 67) return 'C+';
+      if (pct >= 64) return 'C';
+      if (pct >= 60) return 'C-';
+      if (pct >= 57) return 'D+';
+      if (pct >= 54) return 'D';
+      if (pct >= 50) return 'D-';
+      return 'F';
+    }
+
+    function getLevelColorClass(levelStr) {
+      if (!levelStr || levelStr === '-') return '';
+      if (levelStr === '4') return 'level-blue';
+      if (levelStr === '4-' || levelStr === '3+') return 'level-teal';
+      if (levelStr === '3') return 'level-green';
+      if (levelStr === '3-' || levelStr === '2+') return 'level-yellow';
+      return 'level-red';
+    }
+
+    const SCI_7_COLS = [
+      { name: "Check in", max: 15, weight: 5 }, { name: "Ob In Quiz", max: 4, weight: 5 },
+      { name: "Variable Check-in", max: 15, weight: 5 }, { name: "Test Unit 1", max: 4, weight: 10 },
+      { name: "Structure CI", max: 4, weight: 5 }, { name: "Unit 2 Test", max: 32, weight: 10 },
+      { name: "Form & Function Test", max: 15, weight: 10 }, { name: "State of Matter C/I", max: 16, weight: 5 },
+      { name: "Sep Mix", max: 16, weight: 10 }, { name: "Explore Effects", max: 60, weight: 15 },
+      { name: "Heat Impact", max: 20, weight: 10 }, { name: "Human Activity", max: 20, weight: 10 }
+    ];
+
+    const DEFAULT_CLASSES = {
+      '7av': {
+        columns: SCI_7_COLS,
+        students: [
+          { name: "Alter; Jayden", marks: ["15", "4", "15", "4", "3", "28", "14", "15", "15", "56", "19", "18"] },
+          { name: "Aronovici; Bradley", marks: ["15", "3", "12.5", "3+", "3+", "25", "13", "14", "14", "50", "17", "16"] },
+          { name: "Bockner; Spencer", marks: ["15", "4", "14", "3+", "3", "27", "14", "14.5", "15", "52", "18", "18"] },
+          { name: "Bratt; Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"] },
+          { name: "Goodman; Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"] }
+        ]
+      }
+    };
+
+    let currentClassKey = localStorage.getItem('last_active_class') || '7av';
+    let activeColumns = [];
+    let activeStudents = [];
+    let saveTimeout = null;
+    let selectedStudentIdx = null;
+
+    function saveScriptUrl(url) {
+      APPS_SCRIPT_URL = url.trim();
+      localStorage.setItem('apps_script_url', APPS_SCRIPT_URL);
+      triggerAutoSave();
+    }
+
+    function setStatus(text, isSaving) {
+      const el = document.getElementById('saveStatus');
+      el.textContent = text;
+      el.className = `sync-chip ${isSaving ? 'chip-syncing' : 'chip-saved'}`;
+    }
+
+    function triggerAutoSave() {
+      persistLocal();
+      setStatus('● Syncing...', true);
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => { executeCloudSync(); }, 1500);
+    }
+
+    function persistLocal() {
+      localStorage.setItem(`gradebook_${currentClassKey}`, JSON.stringify({ columns: activeColumns, students: activeStudents }));
+    }
+
+    async function executeCloudSync() {
+      if (!APPS_SCRIPT_URL) { setStatus('✓ Local', false); return; }
+
+      const payload = {
+        className: currentClassKey.toUpperCase(),
+        columns: activeColumns,
+        students: activeStudents.map((st, idx) => {
+          const calc = calculateStudentStanding(st);
+          return {
+            name: st.name,
+            notes: st.notes || '',
+            marks: st.marks,
+            avg: calc.avg + '%',
+            letter: calc.letter,
+            level: calc.level
+          };
+        })
+      };
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        setStatus('✓ Synced', false);
+      } catch (e) { setStatus('⚠️ Retry', true); }
+    }
+
+    function switchClass(classKey) {
+      currentClassKey = classKey;
+      localStorage.setItem('last_active_class', classKey);
+      loadClass(classKey);
+    }
+
+    async function loadClass(classKey) {
+      const localData = localStorage.getItem(`gradebook_${classKey}`);
+      if (localData) {
+        try {
+          const parsed = JSON.parse(localData);
+          activeColumns = parsed.columns;
+          activeStudents = parsed.students;
+          renderApp();
+        } catch (e) {}
+      } else {
+        const cls = DEFAULT_CLASSES[classKey] || DEFAULT_CLASSES['7av'];
+        activeColumns = JSON.parse(JSON.stringify(cls.columns));
+        activeStudents = cls.students.map(st => ({
+          name: st.name, notes: st.notes || '', marks: [...st.marks]
+        }));
+        renderApp();
+      }
+
+      if (APPS_SCRIPT_URL) {
+        try {
+          const res = await fetch(`${APPS_SCRIPT_URL}?className=${classKey.toUpperCase()}`);
+          const json = await res.json();
+          if (json.status === 'success' && json.data && json.data.length >= 3) {
+            parseSheetRows(json.data);
+            persistLocal();
+            setStatus('✓ Synced', false);
+          }
+        } catch (e) {}
+      }
+    }
+
+    function parseSheetRows(rows) {
+      const headerNames = rows[0];
+      const maxScores = rows[1];
+      const weightRow = rows[2];
+      const endColIndex = headerNames.length - 4;
+
+      const newCols = [];
+      for (let c = 1; c < endColIndex; c++) {
+        let maxVal = parseFloat((maxScores[c] || '').toString().replace(/[^0-9.]/g, '')) || 4;
+        let cleanedWeight = (weightRow[c] !== undefined && weightRow[c] !== null) ? weightRow[c].toString().trim().replace(/[^0-9.]/g, '') : '';
+        let weightVal = cleanedWeight !== '' ? parseFloat(cleanedWeight) : 10;
+        if (weightVal > 0 && weightVal < 1) weightVal = Math.round(weightVal * 100);
+        newCols.push({ name: headerNames[c], max: maxVal, weight: weightVal });
+      }
+
+      const newStudents = [];
+      for (let r = 3; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row[0]) continue;
+        const marks = [];
+        for (let c = 1; c < endColIndex; c++) marks.push(row[c] !== undefined ? row[c].toString().trim() : '');
+        newStudents.push({ name: row[0], notes: row[headerNames.length - 1] || '', marks: marks });
+      }
+
+      if (newCols.length && newStudents.length) {
+        activeColumns = newCols;
+        activeStudents = newStudents;
+        renderApp();
+      }
+    }
+
+    function parseToPercent(markVal, outOf) {
+      if (!markVal || markVal === 'x' || markVal === '-') return null;
+      const trimmed = markVal.toString().trim();
+      if (LEVEL_MAP[trimmed] !== undefined) return LEVEL_MAP[trimmed];
+      if (outOf === 4) {
+        if (trimmed === '4') return LEVEL_MAP['4'];
+        if (trimmed === '3') return LEVEL_MAP['3'];
+        if (trimmed === '2') return LEVEL_MAP['2'];
+        if (trimmed === '1') return LEVEL_MAP['1'];
+        if (trimmed === '0') return 0;
+      }
+      const num = parseFloat(trimmed);
+      return isNaN(num) ? null : (outOf > 0 ? (num / outOf) * 100 : num);
+    }
+
+    function calculateStudentStanding(student) {
+      let earned = 0, weightSum = 0;
+      activeColumns.forEach((col, idx) => {
+        const raw = student.marks[idx];
+        const pct = parseToPercent(raw, col.max);
+        const w = (col.weight !== undefined && col.weight !== null) ? col.weight : 0;
+        if (pct !== null && w > 0) {
+          earned += (pct * w);
+          weightSum += w;
+        }
+      });
+      if (weightSum === 0) return { avg: '-', level: '-', letter: '-' };
+      const avg = (earned / weightSum).toFixed(1);
+      return { avg: avg, level: getOntarioLevel(avg), letter: getLetterGrade(avg) };
+    }
+
+    function renderApp() {
+      renderStudentsList();
+      renderWeightsList();
+    }
+
+    function renderStudentsList() {
+      const container = document.getElementById('studentsList');
+      container.innerHTML = '';
+
+      activeStudents.forEach((st, idx) => {
+        const standing = calculateStudentStanding(st);
+        const colorClass = getLevelColorClass(standing.level);
+
+        const card = document.createElement('div');
+        card.className = 'student-card';
+        card.innerHTML = `
+          <div class="student-info">
+            <h4>${st.name}</h4>
+            <div class="student-sub">
+              Avg: <b>${standing.avg}%</b> (${standing.letter})
+              ${st.notes ? `<span style="display:block; color:#0369a1; font-size:0.75rem; margin-top:2px;">📝 ${st.notes}</span>` : ''}
+            </div>
+          </div>
+          <div class="card-right">
+            <span class="level-badge ${colorClass}">${standing.level}</span>
+            <button class="btn-grade" onclick="openGradingDrawer(${idx})">Grade</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderWeightsList() {
+      const container = document.getElementById('weightsList');
+      container.innerHTML = '';
+
+      activeColumns.forEach((col, idx) => {
+        const row = document.createElement('div');
+        row.className = 'weight-card';
+        row.innerHTML = `
+          <div>
+            <b style="font-size:0.85rem;">${col.name}</b>
+            <span style="font-size:0.75rem; color:var(--text-muted); display:block;">Col #${idx + 1}</span>
+          </div>
+          <div class="weight-inputs">
+            <div>
+              <label style="font-size:0.65rem; color:var(--text-muted); display:block;">OUT OF</label>
+              <input class="small-input" type="number" min="1" value="${col.max}" 
+                onchange="activeColumns[${idx}].max = parseFloat(this.value) || 1; renderApp(); triggerAutoSave();" />
+            </div>
+            <div>
+              <label style="font-size:0.65rem; color:var(--text-muted); display:block;">WT %</label>
+              <input class="small-input" type="number" min="0" max="100" value="${col.weight}" 
+                onchange="activeColumns[${idx}].weight = (this.value !== '' ? parseFloat(this.value) : 0); renderApp(); triggerAutoSave();" />
+            </div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    /* Drawer Actions */
+    function openGradingDrawer(sIdx) {
+      selectedStudentIdx = sIdx;
+      const st = activeStudents[sIdx];
+      const standing = calculateStudentStanding(st);
+
+      document.getElementById('drawerStudentName').textContent = st.name;
+      document.getElementById('drawerAveragePill').textContent = `Standing: ${standing.level} (${standing.avg}%)`;
+      document.getElementById('drawerNotes').value = st.notes || '';
+
+      const listContainer = document.getElementById('drawerAssessmentsList');
+      listContainer.innerHTML = '';
+
+      activeColumns.forEach((col, cIdx) => {
+        const val = st.marks[cIdx] || '';
+        const row = document.createElement('div');
+        row.className = 'mark-row';
+        row.innerHTML = `
+          <div class="mark-label">
+            ${col.name}
+            <span>Out of /${col.max} · Wt: ${col.weight}%</span>
+          </div>
+          <input class="touch-mark-input" value="${val}" placeholder="-" 
+            onchange="updateStudentMark(${sIdx}, ${cIdx}, this.value)" />
+        `;
+        listContainer.appendChild(row);
+      });
+
+      document.getElementById('gradingDrawer').style.display = 'flex';
+    }
+
+    function updateStudentMark(sIdx, cIdx, val) {
+      activeStudents[sIdx].marks[cIdx] = val.trim();
+      const standing = calculateStudentStanding(activeStudents[sIdx]);
+      document.getElementById('drawerAveragePill').textContent = `Standing: ${standing.level} (${standing.avg}%)`;
+      renderStudentsList();
+      triggerAutoSave();
+    }
+
+    function saveDrawerNote(text) {
+      if (selectedStudentIdx !== null) {
+        activeStudents[selectedStudentIdx].notes = text.trim();
+        renderStudentsList();
+        triggerAutoSave();
+      }
+    }
+
+    function closeGradingDrawer() {
+      document.getElementById('gradingDrawer').style.display = 'none';
+      selectedStudentIdx = null;
+    }
+
+    function handleDrawerBackdrop(e) {
+      if (e.target.id === 'gradingDrawer') closeGradingDrawer();
+    }
+
+    /* Quick Operations */
+    function promptQuickAddStudent() {
+      const name = prompt("Enter student name:");
+      if (!name) return;
+      activeStudents.push({ name: name, notes: '', marks: new Array(activeColumns.length).fill('') });
+      renderApp();
+      triggerAutoSave();
+    }
+
+    function promptAddAssessment() {
+      const title = prompt("Enter assessment title:", "New Test");
+      if (!title) return;
+      const maxVal = parseFloat(prompt("Enter marks it is out of (4 for Ontario Levels):", "4")) || 4;
+      activeColumns.push({ name: title, max: maxVal, weight: 0 });
+      activeStudents.forEach(st => st.marks.push(''));
+      renderApp();
+      triggerAutoSave();
+    }
+
+    function distributeEvenly() {
+      if (!activeColumns.length) return;
+      const even = Math.floor(100 / activeColumns.length);
+      const remainder = 100 % activeColumns.length;
+      activeColumns.forEach((c, i) => c.weight = even + (i === 0 ? remainder : 0));
+      renderApp();
+      triggerAutoSave();
+    }
+
+    /* Tab Switcher */
+    function switchNavTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+
+      if (tab === 'students') {
+        document.querySelector('.tab-bar button:nth-child(1)').classList.add('active');
+        document.getElementById('viewStudents').classList.add('active');
+      } else {
+        document.querySelector('.tab-bar button:nth-child(2)').classList.add('active');
+        document.getElementById('viewWeights').classList.add('active');
+      }
+    }
+
+    // Init
+    if (APPS_SCRIPT_URL) document.getElementById('scriptUrlInput').value = APPS_SCRIPT_URL;
+    document.getElementById('classSelect').value = currentClassKey;
+    loadClass(currentClassKey);
+  </script>
+</body>
+</html>
