@@ -38,6 +38,30 @@
     body { background-color: var(--bg); color: var(--text); padding: 1.5rem; }
     .container { max-width: 100%; margin: 0 auto; }
 
+    /* Password Lock Screen */
+    #lockScreen {
+      position: fixed; inset: 0; background: #0f172a; z-index: 99999;
+      display: flex; justify-content: center; align-items: center; padding: 1.5rem;
+    }
+    .lock-card {
+      background: #ffffff; border-radius: 14px; width: 100%; max-width: 380px;
+      padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center;
+    }
+    .lock-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .lock-title { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-bottom: 0.35rem; }
+    .lock-desc { font-size: 0.825rem; color: #64748b; margin-bottom: 1.25rem; }
+    .lock-input {
+      width: 100%; padding: 0.65rem 0.85rem; border-radius: 8px; border: 1.5px solid #cbd5e1;
+      font-size: 0.95rem; margin-bottom: 0.85rem; text-align: center; font-weight: 600;
+    }
+    .lock-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2); }
+    .btn-unlock {
+      width: 100%; padding: 0.65rem; border-radius: 8px; background: var(--primary);
+      color: #fff; font-weight: 700; border: none; cursor: pointer; font-size: 0.9rem;
+    }
+    .btn-unlock:hover { background: var(--primary-hover); }
+    .lock-error { color: #dc2626; font-size: 0.78rem; font-weight: 600; margin-top: 0.5rem; display: none; }
+
     header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem; }
     h1 { font-size: 1.5rem; font-weight: 700; color: #1e293b; }
     p.subtitle { color: var(--text-muted); font-size: 0.875rem; margin-top: 0.2rem; }
@@ -149,7 +173,7 @@
     }
     .btn-col-action:hover { background: #cbd5e1; opacity: 1; }
 
-    /* Custom Color Threshold Badges */
+    /* Custom Color Badges */
     .level-badge {
       display: inline-block; padding: 0.25rem 0.55rem; border-radius: 6px; font-weight: 800; font-size: 0.825rem;
     }
@@ -166,71 +190,38 @@
       display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; flex-wrap: wrap; gap: 0.5rem;
     }
 
-    /* Assignment-Specific Note Tooltip & Indicator */
-    .mark-cell-wrapper {
-      position: relative;
-      display: inline-block;
-      width: 100%;
-    }
+    /* Note Tooltip */
+    .mark-cell-wrapper { position: relative; display: inline-block; width: 100%; }
     .has-note::after {
-      content: '';
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      width: 0;
-      height: 0;
-      border-top: 7px solid #2563eb;
-      border-left: 7px solid transparent;
-      pointer-events: none;
+      content: ''; position: absolute; top: 2px; right: 2px; width: 0; height: 0;
+      border-top: 7px solid #2563eb; border-left: 7px solid transparent; pointer-events: none;
     }
     .note-tooltip {
-      visibility: hidden;
-      opacity: 0;
-      position: absolute;
-      bottom: calc(100% + 6px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      line-height: 1.35;
-      white-space: normal;
-      min-width: 140px;
-      max-width: 230px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-      z-index: 50;
-      pointer-events: none;
-      transition: opacity 0.15s ease, transform 0.15s ease;
-      text-align: left;
+      visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%); background: #0f172a; color: #f8fafc; padding: 6px 10px;
+      border-radius: 6px; font-size: 0.75rem; font-weight: 500; line-height: 1.35; white-space: normal;
+      min-width: 140px; max-width: 230px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); z-index: 50;
+      pointer-events: none; transition: opacity 0.15s ease, transform 0.15s ease; text-align: left;
     }
     .note-tooltip::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border-width: 5px;
-      border-style: solid;
-      border-color: #0f172a transparent transparent transparent;
+      content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      border-width: 5px; border-style: solid; border-color: #0f172a transparent transparent transparent;
     }
-    .mark-cell-wrapper:hover .note-tooltip {
-      visibility: visible;
-      opacity: 1;
-      transform: translateX(-50%) translateY(-2px);
-    }
+    .mark-cell-wrapper:hover .note-tooltip { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(-2px); }
 
-    /* Modal Styling */
+    /* Modals */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(2px);
+      background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px);
       display: none; justify-content: center; align-items: center; z-index: 100;
     }
     .modal-card {
       background: #ffffff; border-radius: 12px; max-width: 580px; width: 92%;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; animation: popIn 0.18s ease-out;
+    }
+    .modal-card-large {
+      background: #ffffff; border-radius: 14px; max-width: 860px; width: 95%; max-height: 90vh;
+      overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3); animation: popIn 0.18s ease-out;
     }
     @keyframes popIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -239,37 +230,66 @@
       display: flex; justify-content: space-between; align-items: center;
     }
     .modal-header h3 { font-size: 1.15rem; color: #1e293b; }
-    .btn-close-modal {
-      background: transparent; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b; line-height: 1;
-    }
+    .btn-close-modal { background: transparent; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b; line-height: 1; }
     .btn-close-modal:hover { color: #0f172a; }
 
     .modal-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
     .glance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; text-align: center; }
-    .glance-stat {
-      background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem; border-radius: 8px;
-    }
+    .glance-stat { background: #f8fafc; border: 1px solid var(--border); padding: 0.75rem; border-radius: 8px; }
     .glance-stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem; }
     .glance-stat-value { font-size: 1.1rem; font-weight: 800; }
 
-    .glance-detail-box {
-      background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; font-size: 0.825rem;
-    }
+    .glance-detail-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; font-size: 0.825rem; }
     .detail-row { display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
     .detail-row:last-child { margin-bottom: 0; }
-    .notes-textarea {
-      width: 100%; height: 75px; padding: 0.5rem; border: 1px solid var(--border);
-      border-radius: 6px; font-size: 0.825rem; resize: vertical; font-family: inherit;
+    .notes-textarea { width: 100%; height: 75px; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.825rem; resize: vertical; font-family: inherit; }
+
+    /* Visual Analytics Dashboard Styles */
+    .analytics-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1rem; }
+    @media (max-width: 768px) { .analytics-grid { grid-template-columns: 1fr; } }
+    
+    .chart-box {
+      background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 1rem;
     }
+    .chart-title { font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+
+    /* Histogram Bar Styles */
+    .histo-container { display: flex; align-items: flex-end; justify-content: space-around; height: 140px; padding: 10px 0 0 0; border-bottom: 2px solid #cbd5e1; gap: 12px; }
+    .histo-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+    .histo-bar { width: 100%; max-width: 48px; border-radius: 6px 6px 0 0; transition: height 0.3s ease; position: relative; min-height: 4px; }
+    .histo-bar-label { font-size: 0.72rem; font-weight: 700; margin-top: 6px; color: #475569; }
+    .histo-bar-count { font-size: 0.75rem; font-weight: 800; margin-bottom: 4px; color: #0f172a; }
+
+    /* Comparative Progress Bar Chart */
+    .comp-row { margin-bottom: 0.65rem; }
+    .comp-header { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 700; margin-bottom: 3px; }
+    .comp-bar-bg { width: 100%; height: 18px; background: #e2e8f0; border-radius: 6px; overflow: hidden; display: flex; }
+    .comp-bar-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; display: flex; align-items: center; padding-left: 6px; font-size: 0.68rem; color: #fff; font-weight: 800; }
+
+    /* Summary Stats Pill Ribbon */
+    .stat-ribbon { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .stat-pill { background: #fff; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
   </style>
 </head>
 <body>
+
+  <!-- Fullscreen Password Protection Screen -->
+  <div id="lockScreen">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h2 class="lock-title">GradeBook Portal</h2>
+      <p class="lock-desc">Enter authorization password to access grades</p>
+      <input type="password" id="passwordInput" class="lock-input" placeholder="Password..." autofocus onkeydown="if(event.key==='Enter') checkPassword()" />
+      <button class="btn-unlock" onclick="checkPassword()">Unlock Portal</button>
+      <div id="lockError" class="lock-error">Incorrect password. Please try again.</div>
+    </div>
+  </div>
 
   <div class="container">
     <header>
       <div>
         <h1>GradeBook Input & Weighting Portal</h1>
-        <p class="subtitle">Cloud auto-sync active. Notes and 0% weights persist directly to Google Sheets.</p>
+        <p class="subtitle">Cloud auto-sync active. Dual-sticky view, 0% weighting support, and notes synchronization.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -292,7 +312,9 @@
         <button onclick="addStudent()">+ Student</button>
         <button onclick="addColumn()">+ Assessment</button>
         <button onclick="distributeEvenly()">Even Weights</button>
+        <button onclick="openAnalyticsModal()" style="background:#f0fdf4; border-color:#86efac; color:#15803d; font-weight:700;">📊 Analytics & Graphs</button>
         <button class="btn-primary" onclick="exportCSV()">Export CSV</button>
+        <button onclick="lockPortal()" title="Lock Gradebook" style="color:#64748b;">🔒 Lock</button>
         <span id="saveStatus" class="save-status status-saved">✓ Cloud Synced</span>
       </div>
     </header>
@@ -318,7 +340,7 @@
           </span>
         </div>
         <span style="color: var(--text-muted);">
-          <b>Shortcuts:</b> 📊 At-a-Glance | 📋 Paste Column | 🧹 Clear | <b>Right-click mark</b> to add note | <b>Ctrl+V</b> fill down
+          <b>Shortcuts:</b> 📊 Analytics | 📋 Paste Column | 🧹 Clear | <b>Right-click mark</b> to add note | <b>Ctrl+V</b> fill down
         </span>
       </div>
     </div>
@@ -372,7 +394,84 @@
     </div>
   </div>
 
+  <!-- Interactive Visual Analytics Dashboard Modal -->
+  <div id="analyticsModal" class="modal-overlay" onclick="handleAnalyticsBackdrop(event)">
+    <div class="modal-card-large">
+      <div class="modal-header">
+        <h3 id="analyticsTitle">Class Analytics & Performance Dashboard</h3>
+        <button class="btn-close-modal" onclick="closeAnalyticsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Assignment Distribution Histogram -->
+        <div class="chart-box">
+          <div class="chart-title">
+            <span>Assignment Performance Distribution</span>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:normal; margin-right:4px;">Select Work:</label>
+              <select id="analyticsAssignmentSelect" onchange="renderAssignmentChart(this.value)" style="padding:2px 6px; font-size:0.8rem;"></select>
+            </div>
+          </div>
+
+          <div class="stat-ribbon" id="assignmentStatRibbon"></div>
+
+          <!-- Color-Coded Ontario Scale Histogram -->
+          <div class="histo-container" id="assignmentHistoBars"></div>
+        </div>
+
+        <div class="analytics-grid">
+          <!-- Class Overall Standing Breakdown -->
+          <div class="chart-box">
+            <div class="chart-title">Overall Class Standing Mastery</div>
+            <div id="classMasteryBreakdown" style="display:flex; flex-direction:column; gap:8px;"></div>
+          </div>
+
+          <!-- Cross-Class Benchmark Comparison -->
+          <div class="chart-box">
+            <div class="chart-title">Cross-Class Average Comparison</div>
+            <div id="crossClassBenchmarkList"></div>
+            <p style="font-size:0.7rem; color:var(--text-muted); margin-top:0.75rem;">
+              *Benchmarked against current cached data across your Grade roster.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Password Gate Management
+    const PASS_KEY = "Bi@lik2026";
+    function checkAuth() {
+      if (sessionStorage.getItem("auth_unlocked") === "true") {
+        document.getElementById("lockScreen").style.display = "none";
+      } else {
+        document.getElementById("lockScreen").style.display = "flex";
+      }
+    }
+
+    function checkPassword() {
+      const input = document.getElementById("passwordInput");
+      const err = document.getElementById("lockError");
+      if (input.value === PASS_KEY) {
+        sessionStorage.setItem("auth_unlocked", "true");
+        document.getElementById("lockScreen").style.display = "none";
+        err.style.display = "none";
+      } else {
+        err.style.display = "block";
+        input.value = "";
+        input.focus();
+      }
+    }
+
+    function lockPortal() {
+      sessionStorage.removeItem("auth_unlocked");
+      document.getElementById("lockScreen").style.display = "flex";
+      document.getElementById("passwordInput").value = "";
+    }
+    checkAuth();
+
     let APPS_SCRIPT_URL = localStorage.getItem('apps_script_url') || "";
 
     const LEVEL_MAP = {
@@ -539,7 +638,10 @@
     });
 
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeStudentModal();
+      if (e.key === 'Escape') {
+        closeStudentModal();
+        closeAnalyticsModal();
+      }
     });
 
     function saveScriptUrl(url) {
@@ -555,7 +657,6 @@
     }
 
     function triggerAutoSave() {
-      // 1. Immediately harvest notes directly from all active text inputs
       activeStudents.forEach((st, sIdx) => {
         const inputEl = document.getElementById(`notes-${sIdx}`);
         if (inputEl) st.notes = inputEl.value;
@@ -578,7 +679,6 @@
         return;
       }
 
-      // Re-read notes from DOM before sending
       activeStudents.forEach((st, sIdx) => {
         const inputEl = document.getElementById(`notes-${sIdx}`);
         if (inputEl) st.notes = inputEl.value;
@@ -601,7 +701,6 @@
       };
 
       try {
-        // Send as text/plain so CORS preflight does not interfere with Google Apps Script
         await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
@@ -681,7 +780,6 @@
       const maxScores = rows[1];
       const weightRow = rows[2];
 
-      // Detect the Notes column by header name
       let notesColIdx = -1;
       for (let i = headerNames.length - 1; i >= 0; i--) {
         if (headerNames[i] && headerNames[i].toLowerCase().includes('note')) {
@@ -691,7 +789,6 @@
       }
       if (notesColIdx === -1) notesColIdx = headerNames.length - 1;
 
-      // Locate where assessment columns end
       let endColIndex = -1;
       for (let i = 1; i < headerNames.length; i++) {
         const h = (headerNames[i] || '').toLowerCase();
@@ -884,7 +981,6 @@
 
     function updateStudentNotes(sIdx, text) {
       activeStudents[sIdx].notes = text;
-      // Re-evaluate tooltips on marks cells live
       activeColumns.forEach((col, cIdx) => {
         const cellWrapper = document.querySelector(`input.mark-cell[data-row="${sIdx}"][data-col="${cIdx}"]`)?.parentElement;
         if (cellWrapper) {
@@ -998,6 +1094,204 @@
         if (mainInput) mainInput.value = val;
         updateStudentNotes(currentModalStudentIdx, val);
       }
+    }
+
+    /* Analytics Dashboard Logic */
+    function openAnalyticsModal() {
+      const modal = document.getElementById('analyticsModal');
+      document.getElementById('analyticsTitle').textContent = `${currentClassKey.toUpperCase()} Performance & Comparison Dashboard`;
+
+      const sel = document.getElementById('analyticsAssignmentSelect');
+      sel.innerHTML = '';
+      activeColumns.forEach((col, cIdx) => {
+        const opt = document.createElement('option');
+        opt.value = cIdx;
+        opt.textContent = `${col.name} (out of ${col.max})`;
+        sel.appendChild(opt);
+      });
+
+      if (activeColumns.length > 0) {
+        renderAssignmentChart(0);
+      }
+      renderClassMasteryChart();
+      renderCrossClassComparison();
+
+      modal.style.display = 'flex';
+    }
+
+    function closeAnalyticsModal() {
+      document.getElementById('analyticsModal').style.display = 'none';
+    }
+
+    function handleAnalyticsBackdrop(e) {
+      if (e.target.id === 'analyticsModal') closeAnalyticsModal();
+    }
+
+    function renderAssignmentChart(colIndex) {
+      colIndex = parseInt(colIndex, 10);
+      const col = activeColumns[colIndex];
+      const pcts = [];
+
+      activeStudents.forEach(st => {
+        const raw = st.marks[colIndex];
+        const pct = parseToPercent(raw, col.max);
+        if (pct !== null) pcts.push(pct);
+      });
+
+      // Compute statistics
+      pcts.sort((a, b) => a - b);
+      const count = pcts.length;
+      let mean = 0, median = 0, min = 0, max = 0;
+
+      if (count > 0) {
+        mean = (pcts.reduce((a, b) => a + b, 0) / count).toFixed(1);
+        median = (count % 2 === 0 ? (pcts[count/2 - 1] + pcts[count/2]) / 2 : pcts[Math.floor(count/2)]).toFixed(1);
+        min = pcts[0].toFixed(1);
+        max = pcts[count - 1].toFixed(1);
+      }
+
+      document.getElementById('assignmentStatRibbon').innerHTML = `
+        <span class="stat-pill">Submissions: <b>${count}/${activeStudents.length}</b></span>
+        <span class="stat-pill">Class Mean: <b>${mean}%</b></span>
+        <span class="stat-pill">Median: <b>${median}%</b></span>
+        <span class="stat-pill">Highest: <b style="color:#15803d;">${max}%</b></span>
+        <span class="stat-pill">Lowest: <b style="color:#b91c1c;">${min}%</b></span>
+      `;
+
+      // Bin counts for Ontario levels
+      const bins = [
+        { label: "L4 (95%+)", count: 0, color: "#1d4ed8", bg: "#dbeafe" },
+        { label: "L4-/3+ (85-94%)", count: 0, color: "#0f766e", bg: "#ccfbf1" },
+        { label: "L3 (75-84%)", count: 0, color: "#15803d", bg: "#dcfce7" },
+        { label: "L3-/2+ (67-74%)", count: 0, color: "#b45309", bg: "#fef3c7" },
+        { label: "< L2 (≤66%)", count: 0, color: "#b91c1c", bg: "#fee2e2" }
+      ];
+
+      pcts.forEach(p => {
+        if (p >= 95) bins[0].count++;
+        else if (p >= 85) bins[1].count++;
+        else if (p >= 75) bins[2].count++;
+        else if (p >= 67) bins[3].count++;
+        else bins[4].count++;
+      });
+
+      const maxBin = Math.max(...bins.map(b => b.count), 1);
+      const container = document.getElementById('assignmentHistoBars');
+      container.innerHTML = '';
+
+      bins.forEach(b => {
+        const heightPct = Math.round((b.count / maxBin) * 100);
+        const colDiv = document.createElement('div');
+        colDiv.className = 'histo-bar-col';
+        colDiv.innerHTML = `
+          <span class="histo-bar-count">${b.count}</span>
+          <div class="histo-bar" style="height:${heightPct}%; background:${b.color};"></div>
+          <span class="histo-bar-label">${b.label}</span>
+        `;
+        container.appendChild(colDiv);
+      });
+    }
+
+    function renderClassMasteryChart() {
+      const container = document.getElementById('classMasteryBreakdown');
+      container.innerHTML = '';
+
+      const counts = { 'Level 4': 0, 'Level 3': 0, 'Level 2': 0, 'Level 1/R': 0 };
+      let total = 0;
+
+      activeStudents.forEach((_, sIdx) => {
+        const avgText = document.getElementById(`avg-${sIdx}`)?.innerText.replace('%', '');
+        const avg = parseFloat(avgText);
+        if (!isNaN(avg)) {
+          total++;
+          if (avg >= 85) counts['Level 4']++;
+          else if (avg >= 70) counts['Level 3']++;
+          else if (avg >= 60) counts['Level 2']++;
+          else counts['Level 1/R']++;
+        }
+      });
+
+      const colors = {
+        'Level 4': { bar: '#2563eb', text: '#1e40af' },
+        'Level 3': { bar: '#16a34a', text: '#15803d' },
+        'Level 2': { bar: '#d97706', text: '#b45309' },
+        'Level 1/R': { bar: '#dc2626', text: '#b91c1c' }
+      };
+
+      for (let k in counts) {
+        const cnt = counts[k];
+        const pct = total > 0 ? Math.round((cnt / total) * 100) : 0;
+        const row = document.createElement('div');
+        row.innerHTML = `
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:2px;">
+            <span>${k}</span>
+            <span style="color:${colors[k].text};">${cnt} students (${pct}%)</span>
+          </div>
+          <div style="width:100%; height:12px; background:#e2e8f0; border-radius:6px; overflow:hidden;">
+            <div style="width:${pct}%; height:100%; background:${colors[k].bar}; border-radius:6px; transition:width 0.4s ease;"></div>
+          </div>
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    function renderCrossClassComparison() {
+      const container = document.getElementById('crossClassBenchmarkList');
+      container.innerHTML = '';
+
+      // Determine grade cohort (Grade 6, 7, or 8)
+      const currentPrefix = currentClassKey.charAt(0);
+      const cohortKeys = Object.keys(DEFAULT_CLASSES).filter(k => k.startsWith(currentPrefix));
+
+      cohortKeys.forEach(cKey => {
+        let avg = null;
+        if (cKey === currentClassKey) {
+          // Calculate live active class average
+          let sum = 0, count = 0;
+          activeStudents.forEach((_, sIdx) => {
+            const val = parseFloat(document.getElementById(`avg-${sIdx}`)?.innerText.replace('%', ''));
+            if (!isNaN(val)) { sum += val; count++; }
+          });
+          if (count > 0) avg = (sum / count).toFixed(1);
+        } else {
+          // Check cached local storage for other classes
+          const cached = localStorage.getItem(`gradebook_${cKey}`);
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              let sum = 0, count = 0;
+              parsed.students.forEach(st => {
+                let sSum = 0, wSum = 0;
+                parsed.columns.forEach((col, idx) => {
+                  const p = parseToPercent(st.marks[idx], col.max);
+                  const w = col.weight || 0;
+                  if (p !== null && w > 0) { sSum += p * w; wSum += w; }
+                });
+                if (wSum > 0) { sum += (sSum / wSum); count++; }
+              });
+              if (count > 0) avg = (sum / count).toFixed(1);
+            } catch(e) {}
+          }
+        }
+
+        const isCurrent = cKey === currentClassKey;
+        const displayScore = avg !== null ? `${avg}%` : 'No data';
+        const barWidth = avg !== null ? Math.min(Math.max(avg, 0), 100) : 0;
+        const color = isCurrent ? '#2563eb' : '#94a3b8';
+
+        const row = document.createElement('div');
+        row.className = 'comp-row';
+        row.innerHTML = `
+          <div class="comp-header">
+            <span style="${isCurrent ? 'color:#1e40af; font-weight:800;' : ''}">${cKey.toUpperCase()} ${isCurrent ? '(Active)' : ''}</span>
+            <span>${displayScore}</span>
+          </div>
+          <div class="comp-bar-bg">
+            <div class="comp-bar-fill" style="width:${barWidth}%; background:${color};"></div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
     }
 
     function clearColumn(colIdx) {
