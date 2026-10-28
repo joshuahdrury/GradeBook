@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher Gradebook - Desktop Portal</title>
+  <title>Teacher Gradebook - Ontario Growing Success Edition</title>
 
-  <!-- Instant, Reliable Mobile Detection & Redirection -->
+  <!-- Instant Mobile Detection & Redirection -->
   <script>
     (function() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -104,8 +104,8 @@
     }
 
     thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 5; background: #f1f5f9; font-weight: 600; color: #334155; padding: 0.35rem 0.45rem; }
-    thead tr:nth-child(2) th { position: sticky; top: 58px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
-    thead tr:nth-child(3) th { position: sticky; top: 88px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
+    thead tr:nth-child(2) th { position: sticky; top: 62px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
+    thead tr:nth-child(3) th { position: sticky; top: 92px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
 
     /* Dual Sticky Left Columns */
     .col-student {
@@ -122,10 +122,10 @@
       position: sticky; top: 0; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
     }
     thead tr:nth-child(2) th.col-floating-level {
-      position: sticky; top: 58px; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
+      position: sticky; top: 62px; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
     }
     thead tr:nth-child(3) th.col-floating-level {
-      position: sticky; top: 88px; left: 240px; z-index: 10; background: #bae6fd; border-right: 2px solid #94a3b8;
+      position: sticky; top: 92px; left: 240px; z-index: 10; background: #bae6fd; border-right: 2px solid #94a3b8;
     }
 
     .col-summary { background: #f8fafc; font-weight: 600; min-width: 80px; }
@@ -137,7 +137,7 @@
     thead th.col-notes-right { background: #e2e8f0; text-align: center; }
 
     .header-cell-stack {
-      display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 110px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 120px;
     }
 
     input.cell-input {
@@ -160,6 +160,16 @@
     }
     input.header-title-input:hover { border-color: #cbd5e1; background: #fff; }
     input.header-title-input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 2px rgba(2,132,199,0.2); }
+
+    /* Growing Success KICA Category Selectors */
+    select.category-select {
+      font-size: 0.68rem; font-weight: 800; border-radius: 4px; padding: 1px 3px; border: 1px solid #cbd5e1;
+      background: #ffffff; cursor: pointer;
+    }
+    .badge-k { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+    .badge-t { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
+    .badge-c { background: #fef3c7; color: #b45309; border-color: #fde68a; }
+    .badge-a { background: #dcfce7; color: #15803d; border-color: #86efac; }
 
     input.weight-input {
       width: 48px; text-align: center; font-size: 0.75rem; font-weight: bold;
@@ -216,7 +226,7 @@
       display: none; justify-content: center; align-items: center; z-index: 100;
     }
     .modal-card {
-      background: #ffffff; border-radius: 12px; max-width: 580px; width: 92%;
+      background: #ffffff; border-radius: 12px; max-width: 620px; width: 92%;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; animation: popIn 0.18s ease-out;
     }
     .modal-card-large {
@@ -242,38 +252,29 @@
     .glance-detail-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; font-size: 0.825rem; }
     .detail-row { display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
     .detail-row:last-child { margin-bottom: 0; }
-    .notes-textarea { width: 100%; height: 75px; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.825rem; resize: vertical; font-family: inherit; }
+    .notes-textarea { width: 100%; height: 65px; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.825rem; resize: vertical; font-family: inherit; }
 
-    /* Visual Analytics Dashboard Styles */
-    .analytics-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1rem; }
-    @media (max-width: 768px) { .analytics-grid { grid-template-columns: 1fr; } }
-    
-    .chart-box {
-      background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 1rem;
+    /* Report Comment Box */
+    .comment-card {
+      background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.85rem;
     }
-    .chart-title { font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+    .comment-text {
+      font-size: 0.825rem; line-height: 1.45; color: #14532d; font-style: italic; margin-bottom: 0.5rem;
+    }
 
-    /* Histogram Bar Styles */
-    .histo-container { display: flex; align-items: flex-end; justify-content: space-around; height: 140px; padding: 10px 0 0 0; border-bottom: 2px solid #cbd5e1; gap: 12px; }
-    .histo-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
-    .histo-bar { width: 100%; max-width: 48px; border-radius: 6px 6px 0 0; transition: height 0.3s ease; position: relative; min-height: 4px; }
-    .histo-bar-label { font-size: 0.72rem; font-weight: 700; margin-top: 6px; color: #475569; }
-    .histo-bar-count { font-size: 0.75rem; font-weight: 800; margin-bottom: 4px; color: #0f172a; }
-
-    /* Comparative Progress Bar Chart */
-    .comp-row { margin-bottom: 0.65rem; }
-    .comp-header { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 700; margin-bottom: 3px; }
-    .comp-bar-bg { width: 100%; height: 18px; background: #e2e8f0; border-radius: 6px; overflow: hidden; display: flex; }
-    .comp-bar-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; display: flex; align-items: center; padding-left: 6px; font-size: 0.68rem; color: #fff; font-weight: 800; }
-
-    /* Summary Stats Pill Ribbon */
-    .stat-ribbon { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
-    .stat-pill { background: #fff; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+    /* Print Document Styling */
+    @media print {
+      body * { visibility: hidden; }
+      #printableReportArea, #printableReportArea * { visibility: visible; }
+      #printableReportArea {
+        position: absolute; left: 0; top: 0; width: 100%; background: #fff; padding: 20px;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Fullscreen Password Protection Screen -->
+  <!-- Fullscreen Password Screen -->
   <div id="lockScreen">
     <div class="lock-card">
       <div class="lock-icon">🔒</div>
@@ -289,7 +290,7 @@
     <header>
       <div>
         <h1>GradeBook Input & Weighting Portal</h1>
-        <p class="subtitle">Cloud auto-sync active. Dual-sticky view, 0% weighting support, and notes synchronization.</p>
+        <p class="subtitle">Ontario Growing Success: KICA Category Tracking, Evidence Comments, & Print Reports.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -312,7 +313,6 @@
         <button onclick="addStudent()">+ Student</button>
         <button onclick="addColumn()">+ Assessment</button>
         <button onclick="distributeEvenly()">Even Weights</button>
-        <button onclick="openAnalyticsModal()" style="background:#f0fdf4; border-color:#86efac; color:#15803d; font-weight:700;">📊 Analytics & Graphs</button>
         <button class="btn-primary" onclick="exportCSV()">Export CSV</button>
         <button onclick="lockPortal()" title="Lock Gradebook" style="color:#64748b;">🔒 Lock</button>
         <span id="saveStatus" class="save-status status-saved">✓ Cloud Synced</span>
@@ -340,13 +340,13 @@
           </span>
         </div>
         <span style="color: var(--text-muted);">
-          <b>Shortcuts:</b> 📊 Analytics | 📋 Paste Column | 🧹 Clear | <b>Right-click mark</b> to add note | <b>Ctrl+V</b> fill down
+          <b>K/T/C/A:</b> Knowledge (K) · Thinking (T) · Communication (C) · Application (A) | <b>Right-click mark</b> for notes
         </span>
       </div>
     </div>
   </div>
 
-  <!-- Student At-a-Glance Pop-up Modal -->
+  <!-- Student At-a-Glance & Report Generator Pop-up Modal -->
   <div id="studentModal" class="modal-overlay" onclick="handleBackdropClick(event)">
     <div class="modal-card">
       <div class="modal-header">
@@ -371,74 +371,46 @@
 
         <div class="glance-detail-box">
           <div class="detail-row">
-            <span style="color:var(--text-muted);">🌟 Best Performing Work:</span>
-            <span id="modalBestWork" style="font-weight:700; color:#15803d;">None recorded</span>
+            <span style="color:var(--text-muted);">🌟 Strongest Evidence:</span>
+            <span id="modalBestWork" style="font-weight:700; color:#15803d;">None</span>
           </div>
           <div class="detail-row">
-            <span style="color:var(--text-muted);">⚠️ Needs Focus / Lowest Work:</span>
-            <span id="modalLowestWork" style="font-weight:700; color:#b91c1c;">None recorded</span>
+            <span style="color:var(--text-muted);">⚠️ Area for Next Steps:</span>
+            <span id="modalLowestWork" style="font-weight:700; color:#b91c1c;">None</span>
           </div>
           <div class="detail-row">
-            <span style="color:var(--text-muted);">📝 Submissions Done:</span>
-            <span id="modalSubmissionCount" style="font-weight:700;">-</span>
+            <span style="color:var(--text-muted);">📊 Category Mastery:</span>
+            <span id="modalKicaSummary" style="font-weight:700;">-</span>
           </div>
+        </div>
+
+        <!-- Evidence-Based Comment Starter -->
+        <div class="comment-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <b style="font-size:0.75rem; color:#166534;">ONTARIO GROWING SUCCESS COMMENT STARTER:</b>
+            <button onclick="copyGeneratedComment()" style="padding:2px 6px; font-size:0.7rem; background:#fff; border:1px solid #86efac; border-radius:4px; cursor:pointer;">📋 Copy</button>
+          </div>
+          <div id="modalGeneratedComment" class="comment-text">Generating customized comment...</div>
         </div>
 
         <div>
           <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">
-            STUDENT NOTES & INTERVENTIONS:
+            TEACHER NOTES & OBSERVATIONS:
           </label>
           <textarea id="modalNotesText" class="notes-textarea" placeholder="Add observations, accommodations, or parent contact notes..." oninput="updateModalNotes(this.value)"></textarea>
         </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button onclick="printStudentProgressReport()" class="btn-primary" style="display:inline-flex; align-items:center; gap:4px;">
+            🖨️ Print Student Report
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Interactive Visual Analytics Dashboard Modal -->
-  <div id="analyticsModal" class="modal-overlay" onclick="handleAnalyticsBackdrop(event)">
-    <div class="modal-card-large">
-      <div class="modal-header">
-        <h3 id="analyticsTitle">Class Analytics & Performance Dashboard</h3>
-        <button class="btn-close-modal" onclick="closeAnalyticsModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        
-        <!-- Assignment Distribution Histogram -->
-        <div class="chart-box">
-          <div class="chart-title">
-            <span>Assignment Performance Distribution</span>
-            <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); font-weight:normal; margin-right:4px;">Select Work:</label>
-              <select id="analyticsAssignmentSelect" onchange="renderAssignmentChart(this.value)" style="padding:2px 6px; font-size:0.8rem;"></select>
-            </div>
-          </div>
-
-          <div class="stat-ribbon" id="assignmentStatRibbon"></div>
-
-          <!-- Color-Coded Ontario Scale Histogram -->
-          <div class="histo-container" id="assignmentHistoBars"></div>
-        </div>
-
-        <div class="analytics-grid">
-          <!-- Class Overall Standing Breakdown -->
-          <div class="chart-box">
-            <div class="chart-title">Overall Class Standing Mastery</div>
-            <div id="classMasteryBreakdown" style="display:flex; flex-direction:column; gap:8px;"></div>
-          </div>
-
-          <!-- Cross-Class Benchmark Comparison -->
-          <div class="chart-box">
-            <div class="chart-title">Cross-Class Average Comparison</div>
-            <div id="crossClassBenchmarkList"></div>
-            <p style="font-size:0.7rem; color:var(--text-muted); margin-top:0.75rem;">
-              *Benchmarked against current cached data across your Grade roster.
-            </p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
+  <!-- Hidden Clean Printable Progress Report Container -->
+  <div id="printableReportArea" style="display:none;"></div>
 
   <script>
     // Password Gate Management
@@ -538,32 +510,33 @@
       return null;
     }
 
+    // Default achievement categories
     const SCI_7_COLS = [
-      { name: "Check in", max: 15, weight: 5 }, { name: "Ob In Quiz", max: 4, weight: 5 },
-      { name: "Variable Check-in", max: 15, weight: 5 }, { name: "Test Unit 1", max: 4, weight: 10 },
-      { name: "Structure CI", max: 4, weight: 5 }, { name: "Unit 2 Test", max: 32, weight: 10 },
-      { name: "Form & Function Test", max: 15, weight: 10 }, { name: "State of Matter C/I", max: 16, weight: 5 },
-      { name: "Sep Mix", max: 16, weight: 10 }, { name: "Explore Effects", max: 60, weight: 15 },
-      { name: "Heat Impact", max: 20, weight: 10 }, { name: "Human Activity", max: 20, weight: 10 }
+      { name: "Check in", max: 15, weight: 5, category: "K" }, { name: "Ob In Quiz", max: 4, weight: 5, category: "T" },
+      { name: "Variable Check-in", max: 15, weight: 5, category: "T" }, { name: "Test Unit 1", max: 4, weight: 10, category: "K" },
+      { name: "Structure CI", max: 4, weight: 5, category: "A" }, { name: "Unit 2 Test", max: 32, weight: 10, category: "K" },
+      { name: "Form & Function Test", max: 15, weight: 10, category: "C" }, { name: "State of Matter C/I", max: 16, weight: 5, category: "K" },
+      { name: "Sep Mix", max: 16, weight: 10, category: "A" }, { name: "Explore Effects", max: 60, weight: 15, category: "T" },
+      { name: "Heat Impact", max: 20, weight: 10, category: "A" }, { name: "Human Activity", max: 20, weight: 10, category: "C" }
     ];
 
     const SCI_8_COLS = [
-      { name: "Variable Check-in", max: 10, weight: 10 }, { name: "Lab Report #1", max: 20, weight: 15 },
-      { name: "Microscope Quiz", max: 30, weight: 15 }, { name: "Unit 2 Test", max: 39, weight: 20 },
-      { name: "Cell Model", max: 16, weight: 10 }, { name: "Test Unit 3", max: 50, weight: 20 },
-      { name: "Fluid Project", max: 12, weight: 10 }
+      { name: "Variable Check-in", max: 10, weight: 10, category: "T" }, { name: "Lab Report #1", max: 20, weight: 15, category: "C" },
+      { name: "Microscope Quiz", max: 30, weight: 15, category: "K" }, { name: "Unit 2 Test", max: 39, weight: 20, category: "K" },
+      { name: "Cell Model", max: 16, weight: 10, category: "A" }, { name: "Test Unit 3", max: 50, weight: 20, category: "K" },
+      { name: "Fluid Project", max: 12, weight: 10, category: "A" }
     ];
 
     const MATH_COLS = [
-      { name: "Patterning (KU)", max: 4, weight: 15 }, { name: "Algebra (TA)", max: 4, weight: 15 },
-      { name: "2D Geo (C)", max: 4, weight: 15 }, { name: "3D Geo (KU)", max: 4, weight: 15 },
-      { name: "Data Mgmt", max: 4, weight: 15 }, { name: "Exam", max: 30, weight: 25 }
+      { name: "Patterning (KU)", max: 4, weight: 15, category: "K" }, { name: "Algebra (TA)", max: 4, weight: 15, category: "T" },
+      { name: "2D Geo (C)", max: 4, weight: 15, category: "C" }, { name: "3D Geo (KU)", max: 4, weight: 15, category: "K" },
+      { name: "Data Mgmt", max: 4, weight: 15, category: "A" }, { name: "Exam", max: 30, weight: 25, category: "K" }
     ];
 
     const GENERIC_6_COLS = [
-      { name: "Quiz 1", max: 20, weight: 15 }, { name: "Assignment 1", max: 15, weight: 15 },
-      { name: "Mid-Unit Test", max: 30, weight: 25 }, { name: "Project", max: 40, weight: 25 },
-      { name: "Check-in", max: 10, weight: 20 }
+      { name: "Quiz 1", max: 20, weight: 15, category: "K" }, { name: "Assignment 1", max: 15, weight: 15, category: "A" },
+      { name: "Mid-Unit Test", max: 30, weight: 25, category: "K" }, { name: "Project", max: 40, weight: 25, category: "T" },
+      { name: "Check-in", max: 10, weight: 20, category: "C" }
     ];
 
     const DEFAULT_CLASSES = {
@@ -638,10 +611,7 @@
     });
 
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeStudentModal();
-        closeAnalyticsModal();
-      }
+      if (e.key === 'Escape') closeStudentModal();
     });
 
     function saveScriptUrl(url) {
@@ -733,7 +703,12 @@
       if (localData) {
         try {
           const parsed = JSON.parse(localData);
-          activeColumns = parsed.columns;
+          activeColumns = parsed.columns.map(c => ({
+            name: c.name,
+            max: c.max,
+            weight: c.weight,
+            category: c.category || 'K'
+          }));
           activeStudents = parsed.students.map(st => ({
             name: st.name,
             notes: (st.notes !== undefined && st.notes !== null) ? st.notes : '',
@@ -814,7 +789,13 @@
           weightVal = Math.round(weightVal * 100);
         }
 
-        newCols.push({ name: colTitle, max: maxVal, weight: weightVal });
+        // Infer or preserve achievement chart category
+        let category = 'K';
+        if (colTitle.toLowerCase().includes('(t)') || colTitle.toLowerCase().includes('inquiry') || colTitle.toLowerCase().includes('quiz') || colTitle.toLowerCase().includes('project')) category = 'T';
+        if (colTitle.toLowerCase().includes('(c)') || colTitle.toLowerCase().includes('report') || colTitle.toLowerCase().includes('function')) category = 'C';
+        if (colTitle.toLowerCase().includes('(a)') || colTitle.toLowerCase().includes('model') || colTitle.toLowerCase().includes('mix') || colTitle.toLowerCase().includes('impact')) category = 'A';
+
+        newCols.push({ name: colTitle, max: maxVal, weight: weightVal, category: category });
       }
 
       const newStudents = [];
@@ -853,10 +834,21 @@
         <th class="col-floating-level">Ontario Level</th>
       `;
       activeColumns.forEach((col, idx) => {
+        const cat = col.category || 'K';
+        const badgeClass = `badge-${cat.toLowerCase()}`;
+
         hHtml += `<th>
           <div class="header-cell-stack">
-            <input class="header-title-input" value="${col.name}" 
-              onchange="activeColumns[${idx}].name = this.value; triggerAutoSave();" />
+            <div style="display:flex; align-items:center; gap:3px; width:100%;">
+              <select class="category-select ${badgeClass}" onchange="updateColumnCategory(${idx}, this.value)">
+                <option value="K" ${cat === 'K' ? 'selected' : ''}>K</option>
+                <option value="T" ${cat === 'T' ? 'selected' : ''}>T</option>
+                <option value="C" ${cat === 'C' ? 'selected' : ''}>C</option>
+                <option value="A" ${cat === 'A' ? 'selected' : ''}>A</option>
+              </select>
+              <input class="header-title-input" value="${col.name}" 
+                onchange="activeColumns[${idx}].name = this.value; triggerAutoSave();" />
+            </div>
             <div class="col-actions">
               <button class="btn-col-action" title="Paste column from Google Classroom" onclick="promptPasteColumn(${idx})">📋 Paste</button>
               <button class="btn-col-action" title="Clear marks in column" onclick="clearColumn(${idx})">🧹 Clear</button>
@@ -923,11 +915,17 @@
       recalculate();
     }
 
+    function updateColumnCategory(colIdx, cat) {
+      activeColumns[colIdx].category = cat;
+      renderTable();
+      triggerAutoSave();
+    }
+
     function getStudentRowHTML(student, sIdx) {
       let html = `
         <td class="col-student">
           <div style="display:flex; align-items:center; gap:6px;">
-            <button class="btn-col-action" style="font-size:0.9rem;" title="View At-a-Glance Insights" onclick="openStudentModal(${sIdx})">📊</button>
+            <button class="btn-col-action" style="font-size:0.9rem;" title="View At-a-Glance Insights & Comments" onclick="openStudentModal(${sIdx})">📊</button>
             <input class="cell-input" style="font-weight:600; text-align:left; max-width:190px;" value="${student.name}" 
               onchange="activeStudents[${sIdx}].name = this.value; triggerAutoSave();" />
           </div>
@@ -1035,12 +1033,93 @@
       triggerAutoSave();
     }
 
+    // Growing Success Qualitative Mapping
+    function getGrowingSuccessQualifier(pct) {
+      if (pct >= 90) return "thorough";
+      if (pct >= 80) return "proficient and solid";
+      if (pct >= 70) return "considerable";
+      if (pct >= 60) return "some";
+      return "developing";
+    }
+
+    function getFirstName(fullName) {
+      if (!fullName) return "Student";
+      if (fullName.includes(';')) {
+        const parts = fullName.split(';');
+        return parts[1].trim();
+      }
+      return fullName.split(' ')[0].trim();
+    }
+
+    function getSubjectAreaName() {
+      const cls = currentClassKey.toLowerCase();
+      if (cls.includes('ah') || cls.includes('bh') || cls.includes('ch')) return "Grade 7 Mathematics";
+      return "Grade 7 Science & Technology";
+    }
+
+    // Generates Ontario Curriculum Evidence-based Comment
+    function generateGrowingSuccessComment(sIdx) {
+      const st = activeStudents[sIdx];
+      const firstName = getFirstName(st.name);
+      const subject = getSubjectAreaName();
+
+      const avgText = document.getElementById(`avg-${sIdx}`).innerText.replace('%', '');
+      const avg = parseFloat(avgText) || 75;
+      const qualifier = getGrowingSuccessQualifier(avg);
+
+      // Analyze best evidence and lowest performance
+      let bestItem = null, lowestItem = null;
+      let highestPct = -1, lowestPct = 999;
+
+      activeColumns.forEach((col, cIdx) => {
+        const raw = st.marks[cIdx];
+        const pct = parseToPercent(raw, col.max);
+        if (pct !== null) {
+          if (pct > highestPct) {
+            highestPct = pct;
+            bestItem = col;
+          }
+          if (pct < lowestPct) {
+            lowestPct = pct;
+            lowestItem = col;
+          }
+        }
+      });
+
+      const strengthTask = bestItem ? bestItem.name : "classroom assessments";
+      const focusTask = (lowestItem && lowestItem !== bestItem) ? lowestItem.name : null;
+
+      // Strength sentence adhering to exact requested format
+      let comment = `${firstName} has demonstrated a ${qualifier} understanding of ${subject}, which was evident in their work on the ${strengthTask}.`;
+
+      // Next steps / Growth sentence adhering to exact requested format
+      if (focusTask) {
+        let skillFocus = "inquiry and problem-solving skills";
+        if (lowestItem.category === 'K') skillFocus = "foundational concepts and terminology";
+        else if (lowestItem.category === 'C') skillFocus = "clarity in written scientific communication";
+        else if (lowestItem.category === 'A') skillFocus = "practical application to real-world scenarios";
+
+        comment += ` Moving forward, we will encourage ${firstName} to review feedback on the ${focusTask} to further strengthen ${skillFocus}.`;
+      } else {
+        comment += ` Moving forward, we will encourage ${firstName} to continue applying these concepts toward independent research and extended inquiry tasks.`;
+      }
+
+      return comment;
+    }
+
+    function copyGeneratedComment() {
+      const text = document.getElementById('modalGeneratedComment').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Report card comment copied to clipboard!");
+      });
+    }
+
     function openStudentModal(sIdx) {
       currentModalStudentIdx = sIdx;
       const st = activeStudents[sIdx];
       const modal = document.getElementById('studentModal');
 
-      document.getElementById('modalStudentName').textContent = `${st.name} — At a Glance`;
+      document.getElementById('modalStudentName').textContent = `${st.name} — Student Insights`;
       document.getElementById('modalNotesText').value = st.notes || '';
 
       const avgText = document.getElementById(`avg-${sIdx}`).innerText;
@@ -1051,15 +1130,18 @@
       document.getElementById('modalLetter').innerText = letterText;
       document.getElementById('modalLevel').innerHTML = levelHtml;
 
+      // Compute strengths, growth areas, and K/T/C/A category scores
       let highestPct = -1, lowestPct = 999;
       let highestName = "None", lowestName = "None";
-      let count = 0;
+      const catTotals = { K: { sum: 0, w: 0 }, T: { sum: 0, w: 0 }, C: { sum: 0, w: 0 }, A: { sum: 0, w: 0 } };
 
       activeColumns.forEach((col, cIdx) => {
         const raw = st.marks[cIdx];
         const pct = parseToPercent(raw, col.max);
+        const w = col.weight || 0;
+        const cat = col.category || 'K';
+
         if (pct !== null) {
-          count++;
           if (pct > highestPct) {
             highestPct = pct;
             highestName = `${col.name} (${pct.toFixed(0)}%)`;
@@ -1068,12 +1150,24 @@
             lowestPct = pct;
             lowestName = `${col.name} (${pct.toFixed(0)}%)`;
           }
+          if (w > 0) {
+            catTotals[cat].sum += pct * w;
+            catTotals[cat].w += w;
+          }
         }
       });
 
       document.getElementById('modalBestWork').innerText = highestPct >= 0 ? highestName : 'No marks yet';
       document.getElementById('modalLowestWork').innerText = lowestPct <= 100 ? lowestName : 'No marks yet';
-      document.getElementById('modalSubmissionCount').innerText = `${count} of ${activeColumns.length} completed`;
+
+      const catDisplay = Object.keys(catTotals).map(k => {
+        const avg = catTotals[k].w > 0 ? (catTotals[k].sum / catTotals[k].w).toFixed(0) + '%' : '-';
+        return `${k}: ${avg}`;
+      }).join(' · ');
+      document.getElementById('modalKicaSummary').innerText = catDisplay;
+
+      // Populate evidence-based report card comment
+      document.getElementById('modalGeneratedComment').innerText = generateGrowingSuccessComment(sIdx);
 
       modal.style.display = 'flex';
     }
@@ -1096,202 +1190,99 @@
       }
     }
 
-    /* Analytics Dashboard Logic */
-    function openAnalyticsModal() {
-      const modal = document.getElementById('analyticsModal');
-      document.getElementById('analyticsTitle').textContent = `${currentClassKey.toUpperCase()} Performance & Comparison Dashboard`;
+    // Prints Individual Student Progress Report (Clean single-page summary)
+    function printStudentProgressReport() {
+      if (currentModalStudentIdx === null) return;
+      const st = activeStudents[currentModalStudentIdx];
+      const avg = document.getElementById(`avg-${currentModalStudentIdx}`).innerText;
+      const letter = document.getElementById(`badge-${currentModalStudentIdx}`).innerText;
+      const level = document.getElementById(`level-sticky-${currentModalStudentIdx}`).innerText;
+      const subject = getSubjectAreaName();
+      const comment = generateGrowingSuccessComment(currentModalStudentIdx);
 
-      const sel = document.getElementById('analyticsAssignmentSelect');
-      sel.innerHTML = '';
+      let rowsHtml = '';
       activeColumns.forEach((col, cIdx) => {
-        const opt = document.createElement('option');
-        opt.value = cIdx;
-        opt.textContent = `${col.name} (out of ${col.max})`;
-        sel.appendChild(opt);
-      });
-
-      if (activeColumns.length > 0) {
-        renderAssignmentChart(0);
-      }
-      renderClassMasteryChart();
-      renderCrossClassComparison();
-
-      modal.style.display = 'flex';
-    }
-
-    function closeAnalyticsModal() {
-      document.getElementById('analyticsModal').style.display = 'none';
-    }
-
-    function handleAnalyticsBackdrop(e) {
-      if (e.target.id === 'analyticsModal') closeAnalyticsModal();
-    }
-
-    function renderAssignmentChart(colIndex) {
-      colIndex = parseInt(colIndex, 10);
-      const col = activeColumns[colIndex];
-      const pcts = [];
-
-      activeStudents.forEach(st => {
-        const raw = st.marks[colIndex];
+        const raw = st.marks[cIdx] || '-';
         const pct = parseToPercent(raw, col.max);
-        if (pct !== null) pcts.push(pct);
+        const pctStr = pct !== null ? `${pct.toFixed(1)}%` : '-';
+        const ontLevel = pct !== null ? getOntarioLevel(pct) : '-';
+        const note = getAssignmentNote(st.notes, col.name) || '-';
+
+        rowsHtml += `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 6px 8px; font-weight:600;">${col.name}</td>
+            <td style="padding: 6px 8px; text-align:center;">${col.category || 'K'}</td>
+            <td style="padding: 6px 8px; text-align:center;">${raw} / ${col.max}</td>
+            <td style="padding: 6px 8px; text-align:center;">${pctStr}</td>
+            <td style="padding: 6px 8px; text-align:center; font-weight:bold;">${ontLevel}</td>
+            <td style="padding: 6px 8px; font-size:0.75rem; color:#475569;">${note}</td>
+          </tr>
+        `;
       });
 
-      // Compute statistics
-      pcts.sort((a, b) => a - b);
-      const count = pcts.length;
-      let mean = 0, median = 0, min = 0, max = 0;
+      const reportHtml = `
+        <div style="font-family: -apple-system, sans-serif; color: #0f172a; max-width: 800px; margin: 0 auto; padding: 20px;">
+          <div style="border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:flex-end;">
+            <div>
+              <h2 style="margin: 0; color: #1e40af;">Student Progress Report</h2>
+              <h4 style="margin: 3px 0 0 0; color: #64748b;">${subject} — Class ${currentClassKey.toUpperCase()}</h4>
+            </div>
+            <div style="text-align: right;">
+              <h3 style="margin: 0;">${st.name}</h3>
+              <span style="font-size: 0.8rem; color: #64748b;">Generated: ${new Date().toLocaleDateString('en-CA')}</span>
+            </div>
+          </div>
 
-      if (count > 0) {
-        mean = (pcts.reduce((a, b) => a + b, 0) / count).toFixed(1);
-        median = (count % 2 === 0 ? (pcts[count/2 - 1] + pcts[count/2]) / 2 : pcts[Math.floor(count/2)]).toFixed(1);
-        min = pcts[0].toFixed(1);
-        max = pcts[count - 1].toFixed(1);
-      }
+          <div style="display: flex; gap: 12px; margin-bottom: 15px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px;">
+            <div style="flex: 1; text-align: center;">
+              <span style="font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Overall Average</span>
+              <div style="font-size: 1.3rem; font-weight: 800; color: #1e40af;">${avg}</div>
+            </div>
+            <div style="flex: 1; text-align: center; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1;">
+              <span style="font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Ontario Level</span>
+              <div style="font-size: 1.3rem; font-weight: 800; color: #15803d;">Level ${level}</div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+              <span style="font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Letter Grade</span>
+              <div style="font-size: 1.3rem; font-weight: 800; color: #0f172a;">${letter}</div>
+            </div>
+          </div>
 
-      document.getElementById('assignmentStatRibbon').innerHTML = `
-        <span class="stat-pill">Submissions: <b>${count}/${activeStudents.length}</b></span>
-        <span class="stat-pill">Class Mean: <b>${mean}%</b></span>
-        <span class="stat-pill">Median: <b>${median}%</b></span>
-        <span class="stat-pill">Highest: <b style="color:#15803d;">${max}%</b></span>
-        <span class="stat-pill">Lowest: <b style="color:#b91c1c;">${min}%</b></span>
+          <h4 style="margin: 10px 0 6px 0; color: #1e293b;">Assessment Breakdown</h4>
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 15px;">
+            <thead>
+              <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1; text-align: left;">
+                <th style="padding: 6px 8px;">Assessment Title</th>
+                <th style="padding: 6px 8px; text-align:center;">Category</th>
+                <th style="padding: 6px 8px; text-align:center;">Score</th>
+                <th style="padding: 6px 8px; text-align:center;">Percent</th>
+                <th style="padding: 6px 8px; text-align:center;">Level</th>
+                <th style="padding: 6px 8px;">Specific Observations</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+            <b style="font-size: 0.75rem; color: #166534; display:block; margin-bottom: 4px;">GROWING SUCCESS PROGRESS SUMMARY:</b>
+            <p style="font-size: 0.8rem; line-height: 1.45; color: #14532d; font-style: italic; margin: 0;">${comment}</p>
+          </div>
+
+          ${st.notes ? `
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px;">
+            <b style="font-size: 0.75rem; color: #475569; display:block; margin-bottom: 4px;">GENERAL TEACHER OBSERVATIONS:</b>
+            <p style="font-size: 0.8rem; margin: 0;">${st.notes}</p>
+          </div>` : ''}
+        </div>
       `;
 
-      // Bin counts for Ontario levels
-      const bins = [
-        { label: "L4 (95%+)", count: 0, color: "#1d4ed8", bg: "#dbeafe" },
-        { label: "L4-/3+ (85-94%)", count: 0, color: "#0f766e", bg: "#ccfbf1" },
-        { label: "L3 (75-84%)", count: 0, color: "#15803d", bg: "#dcfce7" },
-        { label: "L3-/2+ (67-74%)", count: 0, color: "#b45309", bg: "#fef3c7" },
-        { label: "< L2 (≤66%)", count: 0, color: "#b91c1c", bg: "#fee2e2" }
-      ];
-
-      pcts.forEach(p => {
-        if (p >= 95) bins[0].count++;
-        else if (p >= 85) bins[1].count++;
-        else if (p >= 75) bins[2].count++;
-        else if (p >= 67) bins[3].count++;
-        else bins[4].count++;
-      });
-
-      const maxBin = Math.max(...bins.map(b => b.count), 1);
-      const container = document.getElementById('assignmentHistoBars');
-      container.innerHTML = '';
-
-      bins.forEach(b => {
-        const heightPct = Math.round((b.count / maxBin) * 100);
-        const colDiv = document.createElement('div');
-        colDiv.className = 'histo-bar-col';
-        colDiv.innerHTML = `
-          <span class="histo-bar-count">${b.count}</span>
-          <div class="histo-bar" style="height:${heightPct}%; background:${b.color};"></div>
-          <span class="histo-bar-label">${b.label}</span>
-        `;
-        container.appendChild(colDiv);
-      });
-    }
-
-    function renderClassMasteryChart() {
-      const container = document.getElementById('classMasteryBreakdown');
-      container.innerHTML = '';
-
-      const counts = { 'Level 4': 0, 'Level 3': 0, 'Level 2': 0, 'Level 1/R': 0 };
-      let total = 0;
-
-      activeStudents.forEach((_, sIdx) => {
-        const avgText = document.getElementById(`avg-${sIdx}`)?.innerText.replace('%', '');
-        const avg = parseFloat(avgText);
-        if (!isNaN(avg)) {
-          total++;
-          if (avg >= 85) counts['Level 4']++;
-          else if (avg >= 70) counts['Level 3']++;
-          else if (avg >= 60) counts['Level 2']++;
-          else counts['Level 1/R']++;
-        }
-      });
-
-      const colors = {
-        'Level 4': { bar: '#2563eb', text: '#1e40af' },
-        'Level 3': { bar: '#16a34a', text: '#15803d' },
-        'Level 2': { bar: '#d97706', text: '#b45309' },
-        'Level 1/R': { bar: '#dc2626', text: '#b91c1c' }
-      };
-
-      for (let k in counts) {
-        const cnt = counts[k];
-        const pct = total > 0 ? Math.round((cnt / total) * 100) : 0;
-        const row = document.createElement('div');
-        row.innerHTML = `
-          <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:2px;">
-            <span>${k}</span>
-            <span style="color:${colors[k].text};">${cnt} students (${pct}%)</span>
-          </div>
-          <div style="width:100%; height:12px; background:#e2e8f0; border-radius:6px; overflow:hidden;">
-            <div style="width:${pct}%; height:100%; background:${colors[k].bar}; border-radius:6px; transition:width 0.4s ease;"></div>
-          </div>
-        `;
-        container.appendChild(row);
-      }
-    }
-
-    function renderCrossClassComparison() {
-      const container = document.getElementById('crossClassBenchmarkList');
-      container.innerHTML = '';
-
-      // Determine grade cohort (Grade 6, 7, or 8)
-      const currentPrefix = currentClassKey.charAt(0);
-      const cohortKeys = Object.keys(DEFAULT_CLASSES).filter(k => k.startsWith(currentPrefix));
-
-      cohortKeys.forEach(cKey => {
-        let avg = null;
-        if (cKey === currentClassKey) {
-          // Calculate live active class average
-          let sum = 0, count = 0;
-          activeStudents.forEach((_, sIdx) => {
-            const val = parseFloat(document.getElementById(`avg-${sIdx}`)?.innerText.replace('%', ''));
-            if (!isNaN(val)) { sum += val; count++; }
-          });
-          if (count > 0) avg = (sum / count).toFixed(1);
-        } else {
-          // Check cached local storage for other classes
-          const cached = localStorage.getItem(`gradebook_${cKey}`);
-          if (cached) {
-            try {
-              const parsed = JSON.parse(cached);
-              let sum = 0, count = 0;
-              parsed.students.forEach(st => {
-                let sSum = 0, wSum = 0;
-                parsed.columns.forEach((col, idx) => {
-                  const p = parseToPercent(st.marks[idx], col.max);
-                  const w = col.weight || 0;
-                  if (p !== null && w > 0) { sSum += p * w; wSum += w; }
-                });
-                if (wSum > 0) { sum += (sSum / wSum); count++; }
-              });
-              if (count > 0) avg = (sum / count).toFixed(1);
-            } catch(e) {}
-          }
-        }
-
-        const isCurrent = cKey === currentClassKey;
-        const displayScore = avg !== null ? `${avg}%` : 'No data';
-        const barWidth = avg !== null ? Math.min(Math.max(avg, 0), 100) : 0;
-        const color = isCurrent ? '#2563eb' : '#94a3b8';
-
-        const row = document.createElement('div');
-        row.className = 'comp-row';
-        row.innerHTML = `
-          <div class="comp-header">
-            <span style="${isCurrent ? 'color:#1e40af; font-weight:800;' : ''}">${cKey.toUpperCase()} ${isCurrent ? '(Active)' : ''}</span>
-            <span>${displayScore}</span>
-          </div>
-          <div class="comp-bar-bg">
-            <div class="comp-bar-fill" style="width:${barWidth}%; background:${color};"></div>
-          </div>
-        `;
-        container.appendChild(row);
-      });
+      const printArea = document.getElementById('printableReportArea');
+      printArea.innerHTML = reportHtml;
+      printArea.style.display = 'block';
+      window.print();
+      printArea.style.display = 'none';
     }
 
     function clearColumn(colIdx) {
@@ -1492,11 +1483,11 @@
       if (posInput !== null && posInput.trim() !== '') {
         const parsed = parseInt(posInput.trim(), 10);
         if (!isNaN(parsed) && parsed >= 1) {
-          insertIdx = Math.min(Math.max(parsed - 1, 0), activeColumns.length);
+          insertIdx = Math.min(Math.max(parsed - 1, 0), activeStudents.length);
         }
       }
 
-      const newColumn = { name: title, max: maxVal, weight: 0 };
+      const newColumn = { name: title, max: maxVal, weight: 0, category: 'K' };
       activeColumns.splice(insertIdx, 0, newColumn);
       activeStudents.forEach(st => st.marks.splice(insertIdx, 0, ''));
 
@@ -1506,7 +1497,7 @@
 
     function exportCSV() {
       const currentClass = currentClassKey.toUpperCase();
-      let csv = 'Student Name,Ontario Level,' + activeColumns.map(c => `"${c.name}"`).join(',') + ',Weighted Average,Letter Grade,Ontario Level (Right),Notes & Observations\n';
+      let csv = 'Student Name,Ontario Level,' + activeColumns.map(c => `"${c.name} (${c.category || 'K'})"`).join(',') + ',Weighted Average,Letter Grade,Ontario Level (Right),Notes & Observations\n';
       csv += 'Out Of,Max 4,' + activeColumns.map(c => c.max).join(',') + ',100%,-,Max 4,-\n';
       csv += 'Weight,-,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-,-\n';
 
