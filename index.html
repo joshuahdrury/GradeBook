@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher Gradebook - Ontario Growing Success & Analytics Edition</title>
+  <title>Teacher Gradebook - Ontario Curriculum Expectations & Analytics Edition</title>
 
   <!-- Instant Mobile Detection & Redirection -->
   <script>
@@ -104,8 +104,8 @@
     }
 
     thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 5; background: #f1f5f9; font-weight: 600; color: #334155; padding: 0.35rem 0.45rem; }
-    thead tr:nth-child(2) th { position: sticky; top: 62px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
-    thead tr:nth-child(3) th { position: sticky; top: 92px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
+    thead tr:nth-child(2) th { position: sticky; top: 82px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
+    thead tr:nth-child(3) th { position: sticky; top: 112px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
 
     /* Dual Sticky Left Columns */
     .col-student {
@@ -122,10 +122,10 @@
       position: sticky; top: 0; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
     }
     thead tr:nth-child(2) th.col-floating-level {
-      position: sticky; top: 62px; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
+      position: sticky; top: 82px; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
     }
     thead tr:nth-child(3) th.col-floating-level {
-      position: sticky; top: 92px; left: 240px; z-index: 10; background: #bae6fd; border-right: 2px solid #94a3b8;
+      position: sticky; top: 112px; left: 240px; z-index: 10; background: #bae6fd; border-right: 2px solid #94a3b8;
     }
 
     .col-summary { background: #f8fafc; font-weight: 600; min-width: 80px; }
@@ -137,7 +137,7 @@
     thead th.col-notes-right { background: #e2e8f0; text-align: center; }
 
     .header-cell-stack {
-      display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 120px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 135px;
     }
 
     input.cell-input {
@@ -160,6 +160,14 @@
     }
     input.header-title-input:hover { border-color: #cbd5e1; background: #fff; }
     input.header-title-input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 2px rgba(2,132,199,0.2); }
+
+    /* Expectation Tag Input in Header */
+    input.header-expectation-input {
+      width: 100%; font-size: 0.68rem; font-weight: 600; text-align: center; color: #0369a1;
+      border: 1px solid #e0f2fe; background: #f0f9ff; padding: 2px 4px; border-radius: 4px;
+    }
+    input.header-expectation-input:hover { border-color: #38bdf8; }
+    input.header-expectation-input:focus { outline: none; border-color: var(--accent); background: #fff; }
 
     select.category-select {
       font-size: 0.68rem; font-weight: 800; border-radius: 4px; padding: 1px 3px; border: 1px solid #cbd5e1;
@@ -311,7 +319,7 @@
     <header>
       <div>
         <h1>GradeBook Input & Weighting Portal</h1>
-        <p class="subtitle">Ontario Growing Success: KICA Category Tracking, Evidence Comments, & Visual Analytics.</p>
+        <p class="subtitle">Ontario Curriculum Expectations, Evidence Comments, & Visual Analytics.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -451,8 +459,6 @@
           </div>
 
           <div class="stat-ribbon" id="assignmentStatRibbon"></div>
-
-          <!-- Color-Coded Ontario Scale Histogram -->
           <div class="histo-container" id="assignmentHistoBars"></div>
         </div>
 
@@ -578,33 +584,47 @@
       return null;
     }
 
-    // Default achievement categories
+    // Default achievement categories & expectations
     const SCI_7_COLS = [
-      { name: "Check in", max: 15, weight: 5, category: "K" }, { name: "Ob In Quiz", max: 4, weight: 5, category: "T" },
-      { name: "Variable Check-in", max: 15, weight: 5, category: "T" }, { name: "Test Unit 1", max: 4, weight: 10, category: "K" },
-      { name: "Structure CI", max: 4, weight: 5, category: "A" }, { name: "Unit 2 Test", max: 32, weight: 10, category: "K" },
-      { name: "Form & Function Test", max: 15, weight: 10, category: "C" }, { name: "State of Matter C/I", max: 16, weight: 5, category: "K" },
-      { name: "Sep Mix", max: 16, weight: 10, category: "A" }, { name: "Explore Effects", max: 60, weight: 15, category: "T" },
-      { name: "Heat Impact", max: 20, weight: 10, category: "A" }, { name: "Human Activity", max: 20, weight: 10, category: "C" }
+      { name: "Check in", max: 15, weight: 5, category: "K", expectation: "scientific vocabulary and basic concepts" },
+      { name: "Ob In Quiz", max: 4, weight: 5, category: "T", expectation: "making observations and qualitative inferences" },
+      { name: "Variable Check-in", max: 15, weight: 5, category: "T", expectation: "designing controlled experiments and identifying variables" },
+      { name: "Test Unit 1", max: 4, weight: 10, category: "K", expectation: "fundamental principles of physical systems" },
+      { name: "Structure CI", max: 4, weight: 5, category: "A", expectation: "identifying types of structures and load distributions" },
+      { name: "Unit 2 Test", max: 32, weight: 10, category: "K", expectation: "structural stability, internal and external forces" },
+      { name: "Form & Function Test", max: 15, weight: 10, category: "C", expectation: "analyzing the relationship between form and function" },
+      { name: "State of Matter C/I", max: 16, weight: 5, category: "K", expectation: "the particle theory of matter" },
+      { name: "Sep Mix", max: 16, weight: 10, category: "A", expectation: "separating mechanical mixtures and solutions" },
+      { name: "Explore Effects", max: 60, weight: 15, category: "T", expectation: "investigating environmental and societal impacts" },
+      { name: "Heat Impact", max: 20, weight: 10, category: "A", expectation: "thermal energy transfer and heat management" },
+      { name: "Human Activity", max: 20, weight: 10, category: "C", expectation: "evaluating human impacts on ecosystems and resources" }
     ];
 
     const SCI_8_COLS = [
-      { name: "Variable Check-in", max: 10, weight: 10, category: "T" }, { name: "Lab Report #1", max: 20, weight: 15, category: "C" },
-      { name: "Microscope Quiz", max: 30, weight: 15, category: "K" }, { name: "Unit 2 Test", max: 39, weight: 20, category: "K" },
-      { name: "Cell Model", max: 16, weight: 10, category: "A" }, { name: "Test Unit 3", max: 50, weight: 20, category: "K" },
-      { name: "Fluid Project", max: 12, weight: 10, category: "A" }
+      { name: "Variable Check-in", max: 10, weight: 10, category: "T", expectation: "scientific inquiry and variable control" },
+      { name: "Lab Report #1", max: 20, weight: 15, category: "C", expectation: "documenting experimental lab observations" },
+      { name: "Microscope Quiz", max: 30, weight: 15, category: "K", expectation: "identifying plant and animal cellular components" },
+      { name: "Unit 2 Test", max: 39, weight: 20, category: "K", expectation: "cellular biology and organ systems" },
+      { name: "Cell Model", max: 16, weight: 10, category: "A", expectation: "constructing three-dimensional representations of cellular organelles" },
+      { name: "Test Unit 3", max: 50, weight: 20, category: "K", expectation: "properties of fluids, viscosity, and density" },
+      { name: "Fluid Project", max: 12, weight: 10, category: "A", expectation: "applying hydraulic and pneumatic system designs" }
     ];
 
     const MATH_COLS = [
-      { name: "Patterning (KU)", max: 4, weight: 15, category: "K" }, { name: "Algebra (TA)", max: 4, weight: 15, category: "T" },
-      { name: "2D Geo (C)", max: 4, weight: 15, category: "C" }, { name: "3D Geo (KU)", max: 4, weight: 15, category: "K" },
-      { name: "Data Mgmt", max: 4, weight: 15, category: "A" }, { name: "Exam", max: 30, weight: 25, category: "K" }
+      { name: "Patterning (KU)", max: 4, weight: 15, category: "K", expectation: "identifying linear and non-linear numerical patterns" },
+      { name: "Algebra (TA)", max: 4, weight: 15, category: "T", expectation: "solving multi-step algebraic equations" },
+      { name: "2D Geo (C)", max: 4, weight: 15, category: "C", expectation: "communicating geometric properties of polygons and angles" },
+      { name: "3D Geo (KU)", max: 4, weight: 15, category: "K", expectation: "calculating surface area and volume of prisms" },
+      { name: "Data Mgmt", max: 4, weight: 15, category: "A", expectation: "interpreting circle graphs, histograms, and statistical distributions" },
+      { name: "Exam", max: 30, weight: 25, category: "K", expectation: "consolidating curriculum mathematical concepts" }
     ];
 
     const GENERIC_6_COLS = [
-      { name: "Quiz 1", max: 20, weight: 15, category: "K" }, { name: "Assignment 1", max: 15, weight: 15, category: "A" },
-      { name: "Mid-Unit Test", max: 30, weight: 25, category: "K" }, { name: "Project", max: 40, weight: 25, category: "T" },
-      { name: "Check-in", max: 10, weight: 20, category: "C" }
+      { name: "Quiz 1", max: 20, weight: 15, category: "K", expectation: "foundational unit vocabulary and concepts" },
+      { name: "Assignment 1", max: 15, weight: 15, category: "A", expectation: "applying curriculum concepts to practical tasks" },
+      { name: "Mid-Unit Test", max: 30, weight: 25, category: "K", expectation: "demonstrating understanding of core topics" },
+      { name: "Project", max: 40, weight: 25, category: "T", expectation: "critical thinking and research inquiry" },
+      { name: "Check-in", max: 10, weight: 20, category: "C", expectation: "clarity in written and visual explanations" }
     ];
 
     const DEFAULT_CLASSES = {
@@ -778,7 +798,8 @@
             name: c.name,
             max: c.max,
             weight: c.weight,
-            category: c.category || 'K'
+            category: c.category || 'K',
+            expectation: c.expectation || ''
           }));
           activeStudents = parsed.students.map(st => ({
             name: st.name,
@@ -865,7 +886,13 @@
         if (colTitle.toLowerCase().includes('(c)') || colTitle.toLowerCase().includes('report') || colTitle.toLowerCase().includes('function')) category = 'C';
         if (colTitle.toLowerCase().includes('(a)') || colTitle.toLowerCase().includes('model') || colTitle.toLowerCase().includes('mix') || colTitle.toLowerCase().includes('impact')) category = 'A';
 
-        newCols.push({ name: colTitle, max: maxVal, weight: weightVal, category: category });
+        // Check if cached column has existing expectation
+        let expectation = '';
+        if (activeColumns[c - 1] && activeColumns[c - 1].expectation) {
+          expectation = activeColumns[c - 1].expectation;
+        }
+
+        newCols.push({ name: colTitle, max: maxVal, weight: weightVal, category: category, expectation: expectation });
       }
 
       const newStudents = [];
@@ -906,6 +933,7 @@
       activeColumns.forEach((col, idx) => {
         const cat = col.category || 'K';
         const badgeClass = `badge-${cat.toLowerCase()}`;
+        const expVal = col.expectation || '';
 
         hHtml += `<th>
           <div class="header-cell-stack">
@@ -919,6 +947,9 @@
               <input class="header-title-input" value="${col.name}" 
                 onchange="activeColumns[${idx}].name = this.value; triggerAutoSave();" />
             </div>
+            <input class="header-expectation-input" value="${expVal}" placeholder="🏷️ Expectation / Focus..."
+              title="Curriculum expectation or skill assessed"
+              onchange="activeColumns[${idx}].expectation = this.value; triggerAutoSave();" />
             <div class="col-actions">
               <button class="btn-col-action" title="Paste column from Google Classroom" onclick="promptPasteColumn(${idx})">📋 Paste</button>
               <button class="btn-col-action" title="Clear marks in column" onclick="clearColumn(${idx})">🧹 Clear</button>
@@ -1105,7 +1136,7 @@
 
     function getGrowingSuccessQualifier(pct) {
       if (pct >= 90) return "thorough";
-      if (pct >= 80) return "proficient and solid";
+      if (pct >= 80) return "solid";
       if (pct >= 70) return "considerable";
       if (pct >= 60) return "some";
       return "developing";
@@ -1122,10 +1153,11 @@
 
     function getSubjectAreaName() {
       const cls = currentClassKey.toLowerCase();
-      if (cls.includes('ah') || cls.includes('bh') || cls.includes('ch')) return "Grade 7 Mathematics";
-      return "Grade 7 Science & Technology";
+      if (cls.includes('ah') || cls.includes('bh') || cls.includes('ch')) return "Mathematics";
+      return "Science & Technology";
     }
 
+    // Growing Success Comment Generator with expectation integration
     function generateGrowingSuccessComment(sIdx) {
       const st = activeStudents[sIdx];
       const firstName = getFirstName(st.name);
@@ -1153,20 +1185,24 @@
         }
       });
 
-      const strengthTask = bestItem ? bestItem.name : "classroom assessments";
-      const focusTask = (lowestItem && lowestItem !== bestItem) ? lowestItem.name : null;
+      // Integrate Expectation tag into Sentence 1 (Strength)
+      let strengthExpectation = bestItem && bestItem.expectation && bestItem.expectation.trim() !== ''
+        ? bestItem.expectation.trim()
+        : `${subject} curriculum expectations`;
 
-      let comment = `${firstName} has demonstrated a ${qualifier} understanding of ${subject}, which was evident in their work on the ${strengthTask}.`;
+      let strengthTask = bestItem ? bestItem.name : "classroom assessments";
 
-      if (focusTask) {
-        let skillFocus = "inquiry and problem-solving skills";
-        if (lowestItem.category === 'K') skillFocus = "foundational concepts and terminology";
-        else if (lowestItem.category === 'C') skillFocus = "clarity in written scientific communication";
-        else if (lowestItem.category === 'A') skillFocus = "practical application to real-world scenarios";
+      let comment = `${firstName} has demonstrated a ${qualifier} understanding of ${strengthExpectation}, which was evident in their work on the ${strengthTask}.`;
 
-        comment += ` Moving forward, we will encourage ${firstName} to review feedback on the ${focusTask} to further strengthen ${skillFocus}.`;
+      // Integrate Expectation tag into Sentence 2 (Next Steps)
+      if (lowestItem && lowestItem !== bestItem) {
+        let focusExpectation = lowestItem.expectation && lowestItem.expectation.trim() !== ''
+          ? `strengthen skills in ${lowestItem.expectation.trim()}`
+          : "further develop inquiry and application skills";
+
+        comment += ` Moving forward, we will encourage ${firstName} to review feedback on the ${lowestItem.name} to ${focusExpectation}.`;
       } else {
-        comment += ` Moving forward, we will encourage ${firstName} to continue applying these concepts toward independent research and extended inquiry tasks.`;
+        comment += ` Moving forward, we will encourage ${firstName} to continue applying these concepts toward extended, independent inquiry tasks.`;
       }
 
       return comment;
@@ -1269,10 +1305,12 @@
         const pctStr = pct !== null ? `${pct.toFixed(1)}%` : '-';
         const ontLevel = pct !== null ? getOntarioLevel(pct) : '-';
         const note = getAssignmentNote(st.notes, col.name) || '-';
+        const exp = col.expectation || '-';
 
         rowsHtml += `
           <tr style="border-bottom: 1px solid #e2e8f0;">
             <td style="padding: 6px 8px; font-weight:600;">${col.name}</td>
+            <td style="padding: 6px 8px; font-size:0.75rem; color:#0369a1;">${exp}</td>
             <td style="padding: 6px 8px; text-align:center;">${col.category || 'K'}</td>
             <td style="padding: 6px 8px; text-align:center;">${raw} / ${col.max}</td>
             <td style="padding: 6px 8px; text-align:center;">${pctStr}</td>
@@ -1283,7 +1321,7 @@
       });
 
       const reportHtml = `
-        <div style="font-family: -apple-system, sans-serif; color: #0f172a; max-width: 800px; margin: 0 auto; padding: 20px;">
+        <div style="font-family: -apple-system, sans-serif; color: #0f172a; max-width: 850px; margin: 0 auto; padding: 20px;">
           <div style="border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:flex-end;">
             <div>
               <h2 style="margin: 0; color: #1e40af;">Student Progress Report</h2>
@@ -1315,11 +1353,12 @@
             <thead>
               <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1; text-align: left;">
                 <th style="padding: 6px 8px;">Assessment Title</th>
+                <th style="padding: 6px 8px;">Curriculum Expectation</th>
                 <th style="padding: 6px 8px; text-align:center;">Category</th>
                 <th style="padding: 6px 8px; text-align:center;">Score</th>
                 <th style="padding: 6px 8px; text-align:center;">Percent</th>
                 <th style="padding: 6px 8px; text-align:center;">Level</th>
-                <th style="padding: 6px 8px;">Specific Observations</th>
+                <th style="padding: 6px 8px;">Observations</th>
               </tr>
             </thead>
             <tbody>
@@ -1726,6 +1765,7 @@
     function addColumn() {
       const title = prompt("Enter assessment or test title:", "New Test");
       if (!title) return;
+      const expectation = prompt("Enter curriculum expectation or focus (e.g. 'identifying types of structures'):", "") || "";
       const maxVal = parseFloat(prompt("Enter total marks it is out of (enter 4 for Ontario Levels):", "4")) || 4;
 
       const maxPos = activeColumns.length + 1;
@@ -1742,7 +1782,7 @@
         }
       }
 
-      const newColumn = { name: title, max: maxVal, weight: 0, category: 'K' };
+      const newColumn = { name: title, max: maxVal, weight: 0, category: 'K', expectation: expectation };
       activeColumns.splice(insertIdx, 0, newColumn);
       activeStudents.forEach(st => st.marks.splice(insertIdx, 0, ''));
 
@@ -1752,7 +1792,7 @@
 
     function exportCSV() {
       const currentClass = currentClassKey.toUpperCase();
-      let csv = 'Student Name,Ontario Level,' + activeColumns.map(c => `"${c.name} (${c.category || 'K'})"`).join(',') + ',Weighted Average,Letter Grade,Ontario Level (Right),Notes & Observations\n';
+      let csv = 'Student Name,Ontario Level,' + activeColumns.map(c => `"${c.name} [${c.category || 'K'}] - ${c.expectation || ''}"`).join(',') + ',Weighted Average,Letter Grade,Ontario Level (Right),Notes & Observations\n';
       csv += 'Out Of,Max 4,' + activeColumns.map(c => c.max).join(',') + ',100%,-,Max 4,-\n';
       csv += 'Weight,-,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-,-\n';
 
