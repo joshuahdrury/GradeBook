@@ -150,6 +150,20 @@
       display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 135px;
     }
 
+    /* Small copy button for summary headers */
+    .btn-header-copy {
+      background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px;
+      font-size: 0.65rem; font-weight: 700; color: #475569; padding: 2px 5px;
+      cursor: pointer; margin-top: 4px; transition: all 0.15s ease; display: inline-flex;
+      align-items: center; gap: 2px;
+    }
+    .btn-header-copy:hover {
+      background: #f1f5f9; border-color: #94a3b8; color: #1e293b;
+    }
+    .btn-header-copy.copied {
+      background: #dcfce7; border-color: #86efac; color: #15803d;
+    }
+
     input.cell-input {
       width: 100%; min-width: 65px; max-width: 95px; text-align: center; border: 1px solid transparent;
       background: transparent; font-size: 0.825rem; padding: 0.25rem; border-radius: 4px;
@@ -969,11 +983,26 @@
       hHtml += `
         <th class="col-summary">Weighted<br>Avg</th>
         <th class="col-summary">Letter<br>Grade</th>
-        <th class="col-summary">Average<br>Ontario Level</th>
-        <th class="col-category-level">Knowledge<br>Level (K)</th>
-        <th class="col-category-level">Thinking &amp; Investigating<br>Level (T)</th>
-        <th class="col-category-level">Communication<br>Level (C)</th>
-        <th class="col-category-level">Application<br>Level (A)</th>
+        <th class="col-summary">
+          Average<br>Ontario Level
+          <div><button class="btn-header-copy" onclick="copySummaryColumn('level-right', this)" title="Copy entire column to clipboard">📋 Copy</button></div>
+        </th>
+        <th class="col-category-level">
+          Knowledge<br>Level (K)
+          <div><button class="btn-header-copy" onclick="copySummaryColumn('k-level', this)" title="Copy entire column to clipboard">📋 Copy</button></div>
+        </th>
+        <th class="col-category-level">
+          Thinking &amp; Investigating<br>Level (T)
+          <div><button class="btn-header-copy" onclick="copySummaryColumn('t-level', this)" title="Copy entire column to clipboard">📋 Copy</button></div>
+        </th>
+        <th class="col-category-level">
+          Communication<br>Level (C)
+          <div><button class="btn-header-copy" onclick="copySummaryColumn('c-level', this)" title="Copy entire column to clipboard">📋 Copy</button></div>
+        </th>
+        <th class="col-category-level">
+          Application<br>Level (A)
+          <div><button class="btn-header-copy" onclick="copySummaryColumn('a-level', this)" title="Copy entire column to clipboard">📋 Copy</button></div>
+        </th>
         <th class="col-notes-right">Notes & Observations</th>
         <th style="width:45px;">Action</th>
       `;
@@ -1156,6 +1185,33 @@
 
       renderTable();
       triggerAutoSave();
+    }
+
+    /* Clipboard Copy Helper for Summary Columns */
+    function copySummaryColumn(prefix, btnEl) {
+      const rows = [];
+      activeStudents.forEach((_, sIdx) => {
+        const cell = document.getElementById(`${prefix}-${sIdx}`);
+        let val = '';
+        if (cell) {
+          val = cell.innerText.trim();
+          if (val === '-') val = '';
+        }
+        rows.push(val);
+      });
+
+      const textToCopy = rows.join('\r\n');
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const origText = btnEl.innerHTML;
+        btnEl.innerHTML = '✓ Copied!';
+        btnEl.classList.add('copied');
+        setTimeout(() => {
+          btnEl.innerHTML = origText;
+          btnEl.classList.remove('copied');
+        }, 1500);
+      }).catch(err => {
+        alert("Clipboard copy failed. Please grant browser clipboard permission.");
+      });
     }
 
     function getGrowingSuccessQualifier(pct) {
