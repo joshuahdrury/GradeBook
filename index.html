@@ -107,29 +107,38 @@
     thead tr:nth-child(2) th { position: sticky; top: 82px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
     thead tr:nth-child(3) th { position: sticky; top: 112px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
 
-    /* Dual Sticky Left Columns */
+    /* Dual Sticky Left Columns with High Opaque Stacking Context */
     .col-student {
-      position: sticky; left: 0; z-index: 3; background: var(--surface); text-align: left;
+      position: sticky; left: 0; z-index: 10; background: #ffffff !important; text-align: left;
       font-weight: 600; min-width: 240px; max-width: 240px;
     }
-    thead th.col-student { z-index: 10; background: #e2e8f0; }
+    thead tr:nth-child(1) th.col-student { z-index: 25; background: #e2e8f0 !important; top: 0; }
+    thead tr:nth-child(2) th.col-student { z-index: 25; background: #e2e8f0 !important; top: 82px; }
+    thead tr:nth-child(3) th.col-student { z-index: 25; background: #e2e8f0 !important; top: 112px; }
 
     .col-floating-level {
-      position: sticky; left: 240px; z-index: 3; background: var(--surface);
-      min-width: 125px; max-width: 125px; border-right: 2px solid #94a3b8;
+      position: sticky; left: 240px; z-index: 9; background: #ffffff !important;
+      min-width: 100px; max-width: 100px; border-right: 2px solid #94a3b8;
+      white-space: normal; line-height: 1.25;
     }
     thead tr:nth-child(1) th.col-floating-level {
-      position: sticky; top: 0; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
+      position: sticky; top: 0; left: 240px; z-index: 24; background: #e2e8f0 !important;
+      border-right: 2px solid #94a3b8; white-space: normal; line-height: 1.25;
     }
     thead tr:nth-child(2) th.col-floating-level {
-      position: sticky; top: 82px; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
+      position: sticky; top: 82px; left: 240px; z-index: 24; background: #e2e8f0 !important;
+      border-right: 2px solid #94a3b8;
     }
     thead tr:nth-child(3) th.col-floating-level {
-      position: sticky; top: 112px; left: 240px; z-index: 10; background: #bae6fd; border-right: 2px solid #94a3b8;
+      position: sticky; top: 112px; left: 240px; z-index: 24; background: #bae6fd !important;
+      border-right: 2px solid #94a3b8;
     }
 
     .col-summary { background: #f8fafc; font-weight: 600; min-width: 80px; }
-    .col-category-level { background: #f8fafc; font-weight: 600; min-width: 110px; }
+    .col-category-level {
+      background: #f8fafc; font-weight: 600; min-width: 95px; max-width: 115px;
+      white-space: normal; line-height: 1.25;
+    }
     thead th.col-summary, thead th.col-category-level { background: #e2e8f0; }
 
     .col-notes-right {
@@ -162,7 +171,6 @@
     input.header-title-input:hover { border-color: #cbd5e1; background: #fff; }
     input.header-title-input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 2px rgba(2,132,199,0.2); }
 
-    /* Expectation Tag Input in Header */
     input.header-expectation-input {
       width: 100%; font-size: 0.68rem; font-weight: 600; text-align: center; color: #0369a1;
       border: 1px solid #e0f2fe; background: #f0f9ff; padding: 2px 4px; border-radius: 4px;
@@ -191,7 +199,6 @@
     }
     .btn-col-action:hover { background: #cbd5e1; opacity: 1; }
 
-    /* Custom Color Badges */
     .level-badge {
       display: inline-block; padding: 0.25rem 0.55rem; border-radius: 6px; font-weight: 800; font-size: 0.825rem;
     }
@@ -208,7 +215,6 @@
       display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; flex-wrap: wrap; gap: 0.5rem;
     }
 
-    /* Note Tooltip */
     .mark-cell-wrapper { position: relative; display: inline-block; width: 100%; }
     .has-note::after {
       content: ''; position: absolute; top: 2px; right: 2px; width: 0; height: 0;
@@ -227,7 +233,6 @@
     }
     .mark-cell-wrapper:hover .note-tooltip { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(-2px); }
 
-    /* Modals */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px);
@@ -269,7 +274,6 @@
       font-size: 0.825rem; line-height: 1.45; color: #14532d; font-style: italic; margin-bottom: 0.5rem;
     }
 
-    /* Analytics Dashboard Styles */
     .analytics-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1rem; }
     @media (max-width: 768px) { .analytics-grid { grid-template-columns: 1fr; } }
     
@@ -292,7 +296,6 @@
     .stat-ribbon { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
     .stat-pill { background: #fff; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
 
-    /* Print Document Styling */
     @media print {
       body * { visibility: hidden; }
       #printableReportArea, #printableReportArea * { visibility: visible; }
@@ -449,7 +452,6 @@
       </div>
       <div class="modal-body">
         
-        <!-- Assignment Distribution Histogram -->
         <div class="chart-box">
           <div class="chart-title">
             <span>Assignment Performance Distribution</span>
@@ -464,13 +466,11 @@
         </div>
 
         <div class="analytics-grid">
-          <!-- Class Overall Standing Breakdown -->
           <div class="chart-box">
             <div class="chart-title">Overall Class Standing Mastery</div>
             <div id="classMasteryBreakdown" style="display:flex; flex-direction:column; gap:8px;"></div>
           </div>
 
-          <!-- Cross-Class Benchmark Comparison -->
           <div class="chart-box">
             <div class="chart-title">Cross-Class Average Comparison</div>
             <div id="crossClassBenchmarkList"></div>
@@ -488,7 +488,6 @@
   <div id="printableReportArea" style="display:none;"></div>
 
   <script>
-    // Password Gate Management
     const PASS_KEY = "Bi@lik2026";
     function checkAuth() {
       if (sessionStorage.getItem("auth_unlocked") === "true") {
@@ -860,7 +859,6 @@
       }
       if (notesColIdx === -1) notesColIdx = headerNames.length - 1;
 
-      // Locate where assessment columns end (first summary column)
       let endColIndex = -1;
       for (let i = 1; i < headerNames.length; i++) {
         const h = (headerNames[i] || '').toLowerCase();
@@ -938,7 +936,7 @@
 
       let hHtml = `
         <th class="col-student">Student Name</th>
-        <th class="col-floating-level">Average Ontario Level</th>
+        <th class="col-floating-level">Average<br>Ontario Level</th>
       `;
       activeColumns.forEach((col, idx) => {
         const cat = col.category || 'K';
@@ -969,13 +967,13 @@
         </th>`;
       });
       hHtml += `
-        <th class="col-summary">Weighted Avg</th>
-        <th class="col-summary">Letter Grade</th>
-        <th class="col-summary">Average Ontario Level</th>
-        <th class="col-category-level">Knowledge Level (K)</th>
-        <th class="col-category-level">Thinking & Investigating Level (T)</th>
-        <th class="col-category-level">Communication Level (C)</th>
-        <th class="col-category-level">Application Level (A)</th>
+        <th class="col-summary">Weighted<br>Avg</th>
+        <th class="col-summary">Letter<br>Grade</th>
+        <th class="col-summary">Average<br>Ontario Level</th>
+        <th class="col-category-level">Knowledge<br>Level (K)</th>
+        <th class="col-category-level">Thinking &amp; Investigating<br>Level (T)</th>
+        <th class="col-category-level">Communication<br>Level (C)</th>
+        <th class="col-category-level">Application<br>Level (A)</th>
         <th class="col-notes-right">Notes & Observations</th>
         <th style="width:45px;">Action</th>
       `;
@@ -1425,7 +1423,6 @@
       printArea.style.display = 'none';
     }
 
-    /* Visual Analytics Dashboard Logic */
     function openAnalyticsModal() {
       const modal = document.getElementById('analyticsModal');
       document.getElementById('analyticsTitle').textContent = `${currentClassKey.toUpperCase()} Performance & Comparison Dashboard`;
@@ -1720,7 +1717,6 @@
         let earnedSum = 0;
         let appliedWeight = 0;
 
-        // Track Category Totals
         const catStats = {
           K: { earned: 0, weight: 0 },
           T: { earned: 0, weight: 0 },
@@ -1755,7 +1751,6 @@
         const cCell = document.getElementById(`c-level-${sIdx}`);
         const aCell = document.getElementById(`a-level-${sIdx}`);
 
-        // Overall Weighted Standing
         if (appliedWeight > 0) {
           const finalAverage = (earnedSum / appliedWeight).toFixed(1);
           const letter = getLetterGrade(finalAverage);
@@ -1775,7 +1770,6 @@
           if (levelRightCell) levelRightCell.textContent = '-';
         }
 
-        // Render individual K, T, C, A levels
         const renderCategoryBadge = (targetCell, stats) => {
           if (!targetCell) return;
           if (stats.weight > 0) {
