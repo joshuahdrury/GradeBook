@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher Gradebook - Ontario Growing Success & Analytics Edition</title>
+  <title>Teacher Gradebook - Success, Trends & Learning Skills</title>
 
   <!-- Instant Mobile Detection & Redirection -->
   <script>
@@ -89,6 +89,33 @@
     .status-saving { background: #fef3c7; color: #b45309; }
     .status-error { background: #fee2e2; color: #b91c1c; }
 
+    /* Collapsible Learning Skills Panel */
+    #learningSkillsPanel {
+      display: none; background: #ffffff; border: 1px solid var(--border);
+      border-radius: 10px; margin-bottom: 1.25rem; padding: 1rem 1.25rem;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); animation: popIn 0.2s ease-out;
+    }
+    .ls-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+    .ls-header h3 { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+    .ls-grid-scroll { overflow-x: auto; max-height: 280px; }
+    .ls-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .ls-table th { background: #f8fafc; padding: 6px 10px; border-bottom: 2px solid var(--border); text-align: center; }
+    .ls-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: center; }
+    .ls-table td.name-col { text-align: left; font-weight: 600; min-width: 180px; }
+
+    /* E/G/S/N Clickable Badge Chips */
+    .ls-chip {
+      display: inline-block; width: 28px; height: 26px; line-height: 24px;
+      border-radius: 6px; font-weight: 800; font-size: 0.8rem; text-align: center;
+      cursor: pointer; user-select: none; transition: transform 0.1s ease;
+    }
+    .ls-chip:hover { transform: scale(1.1); }
+    .ls-e { background: #dbeafe; color: #1d4ed8; border: 1.5px solid #93c5fd; }
+    .ls-g { background: #dcfce7; color: #15803d; border: 1.5px solid #86efac; }
+    .ls-s { background: #fef3c7; color: #b45309; border: 1.5px solid #fde68a; }
+    .ls-n { background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5; }
+    .ls-none { background: #f1f5f9; color: #94a3b8; border: 1px dashed #cbd5e1; }
+
     .sheet-card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;
@@ -157,12 +184,22 @@
       cursor: pointer; margin-top: 4px; transition: all 0.15s ease; display: inline-flex;
       align-items: center; gap: 2px;
     }
-    .btn-header-copy:hover {
-      background: #f1f5f9; border-color: #94a3b8; color: #1e293b;
+    .btn-header-copy:hover { background: #f1f5f9; border-color: #94a3b8; color: #1e293b; }
+    .btn-header-copy.copied { background: #dcfce7; border-color: #86efac; color: #15803d; }
+
+    /* In-cell Sparkline & Trajectory Styling */
+    .sparkline-wrapper {
+      display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; vertical-align: middle;
     }
-    .btn-header-copy.copied {
-      background: #dcfce7; border-color: #86efac; color: #15803d;
+    .sparkline-svg {
+      width: 48px; height: 18px; stroke-width: 1.8; fill: none; overflow: visible;
     }
+    .trend-badge {
+      font-size: 0.72rem; font-weight: 800; border-radius: 4px; padding: 1px 3px; line-height: 1;
+    }
+    .trend-up { color: #15803d; background: #dcfce7; }
+    .trend-neutral { color: #475569; background: #f1f5f9; }
+    .trend-down { color: #b91c1c; background: #fee2e2; }
 
     input.cell-input {
       width: 100%; min-width: 65px; max-width: 95px; text-align: center; border: 1px solid transparent;
@@ -337,7 +374,7 @@
     <header>
       <div>
         <h1>GradeBook Input & Weighting Portal</h1>
-        <p class="subtitle">Ontario Curriculum Expectations, KICA Category Levels, & Visual Analytics.</p>
+        <p class="subtitle">Ontario Curriculum Expectations, KICA Category Levels, Learning Skills & Growth Trajectories.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -360,12 +397,42 @@
         <button onclick="addStudent()">+ Student</button>
         <button onclick="addColumn()">+ Assessment</button>
         <button onclick="distributeEvenly()">Even Weights</button>
-        <button onclick="openAnalyticsModal()" style="background:#f0fdf4; border-color:#86efac; color:#15803d; font-weight:700;">📈 Class & Grade Analytics</button>
+        <button onclick="toggleLearningSkillsPanel()" style="background:#eef2ff; border-color:#c7d2fe; color:#3730a3; font-weight:700;">📋 Learning Skills (E/G/S/N)</button>
+        <button onclick="openAnalyticsModal()" style="background:#f0fdf4; border-color:#86efac; color:#15803d; font-weight:700;">📈 Class Analytics</button>
         <button class="btn-primary" onclick="exportCSV()">Export CSV</button>
         <button onclick="lockPortal()" title="Lock Gradebook" style="color:#64748b;">🔒 Lock</button>
         <span id="saveStatus" class="save-status status-saved">✓ Cloud Synced</span>
       </div>
     </header>
+
+    <!-- Collapsible Ontario Learning Skills Panel -->
+    <div id="learningSkillsPanel">
+      <div class="ls-header">
+        <div>
+          <h3>Ontario Learning Skills &amp; Work Habits (Click chip to cycle E → G → S → N)</h3>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+            <b>R:</b> Responsibility · <b>O:</b> Organization · <b>IN:</b> Independent Work · <b>C:</b> Collaboration · <b>I:</b> Initiative · <b>S:</b> Self-Regulation
+          </p>
+        </div>
+        <button onclick="toggleLearningSkillsPanel()" style="padding:2px 6px; font-size:0.75rem;">✕ Close Panel</button>
+      </div>
+      <div class="ls-grid-scroll">
+        <table class="ls-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;">Student Name</th>
+              <th>Responsibility</th>
+              <th>Organization</th>
+              <th>Independent Work</th>
+              <th>Collaboration</th>
+              <th>Initiative</th>
+              <th>Self-Regulation</th>
+            </tr>
+          </thead>
+          <tbody id="learningSkillsBody"></tbody>
+        </table>
+      </div>
+    </div>
 
     <div class="sheet-card">
       <div class="table-container">
@@ -388,7 +455,7 @@
           </span>
         </div>
         <span style="color: var(--text-muted);">
-          <b>K/T/C/A:</b> Knowledge (K) · Thinking (T) · Communication (C) · Application (A) | <b>Right-click mark</b> for notes
+          <b>Trajectories:</b> ↗ Growth | → Steady | ↘ Intervention Needed | <b>Click sparkline</b> to see score progression
         </span>
       </div>
     </div>
@@ -429,6 +496,10 @@
           <div class="detail-row">
             <span style="color:var(--text-muted);">📊 Category Mastery:</span>
             <span id="modalKicaSummary" style="font-weight:700;">-</span>
+          </div>
+          <div class="detail-row">
+            <span style="color:var(--text-muted);">📋 Learning Skills Profile:</span>
+            <span id="modalLsSummary" style="font-weight:700; color:#3730a3;">-</span>
           </div>
         </div>
 
@@ -541,6 +612,15 @@
       'R': 35, '0': 0
     };
 
+    const LS_SKILLS = [
+      { key: 'R', label: 'Responsibility' },
+      { key: 'O', label: 'Organization' },
+      { key: 'IN', label: 'Independent Work' },
+      { key: 'C', label: 'Collaboration' },
+      { key: 'I', label: 'Initiative' },
+      { key: 'S', label: 'Self-Regulation' }
+    ];
+
     function getLetterGrade(pct) {
       if (pct >= 95) return 'A';
       if (pct >= 90) return 'A-';
@@ -651,26 +731,26 @@
       '7av': {
         columns: SCI_7_COLS,
         students: [
-          { name: "Alter; Jayden", marks: ["15", "4", "15", "4", "3", "28", "14", "15", "15", "56", "19", "18"] },
-          { name: "Aronovici; Bradley", marks: ["15", "3", "12.5", "3+", "3+", "25", "13", "14", "14", "50", "17", "16"] },
-          { name: "Bockner; Spencer", marks: ["15", "4", "14", "3+", "3", "27", "14", "14.5", "15", "52", "18", "18"] },
-          { name: "Bratt; Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"] },
-          { name: "Gal; Itay", marks: ["9", "3", "9", "3+/4-", "3", "20", "11", "12", "12", "42", "14", "13"] },
-          { name: "Gerwitz; Olivia", marks: ["15", "3", "13.5", "3", "4/4-", "27", "13", "14", "15", "51", "17", "16"] },
-          { name: "Goldenberg; Oliver", marks: ["15", "3", "14", "4", "3", "26", "14", "14", "14", "53", "17", "17"] },
-          { name: "Goodman; Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"] },
-          { name: "Inspektor; Lev", marks: ["15", "4", "15", "3+/4-", "3+", "28", "14", "15", "15", "55", "19", "18"] },
-          { name: "Katz; Graycie", marks: ["14", "3", "14", "3", "3+", "25", "13", "14", "14", "49", "16", "16"] },
-          { name: "Kaufman; Matthew", marks: ["15", "4", "12", "3", "3+", "26", "13.5", "14", "14", "50", "17", "16"] },
-          { name: "Kerekes; Addison", marks: ["15", "4", "15", "3+", "4", "29", "15", "15", "15", "58", "20", "19"] },
-          { name: "Libin; Warren", marks: ["14", "4", "15", "3", "3-", "25", "13", "13.5", "14", "48", "16", "15"] },
-          { name: "Moxley; Scarlet", marks: ["14", "2", "13.5", "3+/4-", "3", "24", "12.5", "13", "13", "47", "15", "15"] },
-          { name: "Rothschild; Elle", marks: ["15", "4", "15", "4", "4-", "30", "15", "15.5", "16", "57", "19", "19"] },
-          { name: "Ungar; Yanai", marks: ["12", "4", "15", "3+/4-", "3", "26", "13", "14", "14", "50", "17", "16"] },
-          { name: "Valo; Judah", marks: ["15", "4", "15", "3+/4-", "3", "27", "14", "14", "15", "52", "18", "17"] },
-          { name: "Wasserman; Zachary", marks: ["14", "4", "14.5", "3+", "4", "28", "14", "15", "15", "55", "18", "18"] },
-          { name: "Weinerman; Eli", marks: ["15", "2", "10", "4/4-", "4-", "27", "13.5", "14", "14", "51", "17", "17"] },
-          { name: "Zifkin; Lily", marks: ["15", "4", "15", "4/4-", "3+", "28", "14.5", "15", "15", "54", "18", "18"] }
+          { name: "Alter; Jayden", marks: ["15", "4", "15", "4", "3", "28", "14", "15", "15", "56", "19", "18"], ls: { R:'E', O:'E', IN:'G', C:'E', I:'G', S:'E' } },
+          { name: "Aronovici; Bradley", marks: ["15", "3", "12.5", "3+", "3+", "25", "13", "14", "14", "50", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'S', I:'G', S:'G' } },
+          { name: "Bockner; Spencer", marks: ["15", "4", "14", "3+", "3", "27", "14", "14.5", "15", "52", "18", "18"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'E', S:'G' } },
+          { name: "Bratt; Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'G', S:'E' } },
+          { name: "Gal; Itay", marks: ["9", "3", "9", "3+/4-", "3", "20", "11", "12", "12", "42", "14", "13"], ls: { R:'S', O:'S', IN:'S', C:'G', I:'S', S:'S' } },
+          { name: "Gerwitz; Olivia", marks: ["15", "3", "13.5", "3", "4/4-", "27", "13", "14", "15", "51", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'E', I:'G', S:'G' } },
+          { name: "Goldenberg; Oliver", marks: ["15", "3", "14", "4", "3", "26", "14", "14", "14", "53", "17", "17"], ls: { R:'E', O:'G', IN:'G', C:'G', I:'E', S:'G' } },
+          { name: "Goodman; Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"], ls: { R:'G', O:'S', IN:'G', C:'G', I:'S', S:'G' } },
+          { name: "Inspektor; Lev", marks: ["15", "4", "15", "3+/4-", "3+", "28", "14", "15", "15", "55", "19", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Katz; Graycie", marks: ["14", "3", "14", "3", "3+", "25", "13", "14", "14", "49", "16", "16"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
+          { name: "Kaufman; Matthew", marks: ["15", "4", "12", "3", "3+", "26", "13.5", "14", "14", "50", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'E', I:'G', S:'G' } },
+          { name: "Kerekes; Addison", marks: ["15", "4", "15", "3+", "4", "29", "15", "15", "15", "58", "20", "19"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Libin; Warren", marks: ["14", "4", "15", "3", "3-", "25", "13", "13.5", "14", "48", "16", "15"], ls: { R:'G', O:'S', IN:'G', C:'G', I:'S', S:'S' } },
+          { name: "Moxley; Scarlet", marks: ["14", "2", "13.5", "3+/4-", "3", "24", "12.5", "13", "13", "47", "15", "15"], ls: { R:'G', O:'G', IN:'S', C:'G', I:'G', S:'G' } },
+          { name: "Rothschild; Elle", marks: ["15", "4", "15", "4", "4-", "30", "15", "15.5", "16", "57", "19", "19"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Ungar; Yanai", marks: ["12", "4", "15", "3+/4-", "3", "26", "13", "14", "14", "50", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
+          { name: "Valo; Judah", marks: ["15", "4", "15", "3+/4-", "3", "27", "14", "14", "15", "52", "18", "17"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'G', S:'E' } },
+          { name: "Wasserman; Zachary", marks: ["14", "4", "14.5", "3+", "4", "28", "14", "15", "15", "55", "18", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Weinerman; Eli", marks: ["15", "2", "10", "4/4-", "4-", "27", "13.5", "14", "14", "51", "17", "17"], ls: { R:'G', O:'S', IN:'G', C:'S', I:'S', S:'S' } },
+          { name: "Zifkin; Lily", marks: ["15", "4", "15", "4/4-", "3+", "28", "14.5", "15", "15", "54", "18", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } }
         ]
       },
       '7bv': { columns: SCI_7_COLS, students: ["Alter; Marlowe", "Balboul; Ryan", "Binder; Abby", "Borer; Maya", "Cherun; Ellie", "Fonn; Jared", "Gerwitz; Brody", "Halbrich; Lia", "Katz; Austin", "Kremer; Erez", "Kroft; Chelsea", "Majerovits; Logan", "Naiberg; Sienna", "Reiter; Maxim", "Rubenstein; Leif", "Rubinoff; Avery", "Scholl; Maxwell", "Tropepe; Noah", "Vilner; Charlie"] },
@@ -768,6 +848,7 @@
           name: st.name,
           notes: (st.notes !== undefined && st.notes !== null) ? st.notes : '',
           marks: st.marks,
+          ls: st.ls || {},
           avg: document.getElementById(`avg-${idx}`) ? document.getElementById(`avg-${idx}`).innerText : '',
           letter: document.getElementById(`badge-${idx}`) ? document.getElementById(`badge-${idx}`).innerText : '',
           level: document.getElementById(`level-sticky-${idx}`) ? document.getElementById(`level-sticky-${idx}`).innerText : '',
@@ -821,23 +902,26 @@
           activeStudents = parsed.students.map(st => ({
             name: st.name,
             notes: (st.notes !== undefined && st.notes !== null) ? st.notes : '',
-            marks: st.marks
+            marks: st.marks,
+            ls: st.ls || { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' }
           }));
           renderTable();
+          renderLearningSkillsTable();
         } catch (e) { console.error('Local cache error:', e); }
       } else {
         const cls = DEFAULT_CLASSES[classKey] || DEFAULT_CLASSES['7av'];
         activeColumns = JSON.parse(JSON.stringify(cls.columns));
         activeStudents = cls.students.map(st => {
           if (typeof st === 'string') {
-            return { name: st, notes: '', marks: new Array(activeColumns.length).fill('') };
+            return { name: st, notes: '', marks: new Array(activeColumns.length).fill(''), ls: { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' } };
           } else {
             const filled = [...st.marks];
             while (filled.length < activeColumns.length) filled.push('');
-            return { name: st.name, notes: st.notes || '', marks: filled };
+            return { name: st.name, notes: st.notes || '', marks: filled, ls: st.ls || { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' } };
           }
         });
         renderTable();
+        renderLearningSkillsTable();
       }
 
       if (APPS_SCRIPT_URL) {
@@ -932,13 +1016,18 @@
           ? row[notesColIdx].toString().trim() 
           : '';
 
-        newStudents.push({ name: studentName, notes: notes, marks: marks });
+        let existingLs = { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' };
+        const found = activeStudents.find(s => s.name === studentName);
+        if (found && found.ls) existingLs = found.ls;
+
+        newStudents.push({ name: studentName, notes: notes, marks: marks, ls: existingLs });
       }
 
       if (newCols.length > 0 && newStudents.length > 0) {
         activeColumns = newCols;
         activeStudents = newStudents;
         renderTable();
+        renderLearningSkillsTable();
       }
     }
 
@@ -981,7 +1070,7 @@
         </th>`;
       });
       hHtml += `
-        <th class="col-summary">Weighted<br>Avg</th>
+        <th class="col-summary">Weighted<br>Avg &amp; Trajectory</th>
         <th class="col-summary">Letter<br>Grade</th>
         <th class="col-summary">
           Average<br>Ontario Level
@@ -1125,6 +1214,99 @@
       return html;
     }
 
+    /* Learning Skills Panel Logic */
+    function toggleLearningSkillsPanel() {
+      const panel = document.getElementById('learningSkillsPanel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function renderLearningSkillsTable() {
+      const tbody = document.getElementById('learningSkillsBody');
+      tbody.innerHTML = '';
+
+      activeStudents.forEach((st, sIdx) => {
+        const ls = st.ls || { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' };
+        const tr = document.createElement('tr');
+        let rowHtml = `<td class="name-col">${st.name}</td>`;
+
+        LS_SKILLS.forEach(skill => {
+          const val = ls[skill.key] || '-';
+          const chipClass = getLsChipClass(val);
+          rowHtml += `
+            <td>
+              <span class="ls-chip ${chipClass}" 
+                onclick="cycleLearningSkill(${sIdx}, '${skill.key}')" 
+                title="${skill.label}: Click to cycle E → G → S → N">
+                ${val}
+              </span>
+            </td>
+          `;
+        });
+        tr.innerHTML = rowHtml;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function getLsChipClass(val) {
+      if (val === 'E') return 'ls-e';
+      if (val === 'G') return 'ls-g';
+      if (val === 'S') return 'ls-s';
+      if (val === 'N') return 'ls-n';
+      return 'ls-none';
+    }
+
+    function cycleLearningSkill(sIdx, key) {
+      const cycle = ['-', 'E', 'G', 'S', 'N'];
+      const current = activeStudents[sIdx].ls ? (activeStudents[sIdx].ls[key] || '-') : '-';
+      let nextIdx = (cycle.indexOf(current) + 1) % cycle.length;
+      if (nextIdx < 0) nextIdx = 1;
+
+      if (!activeStudents[sIdx].ls) activeStudents[sIdx].ls = {};
+      activeStudents[sIdx].ls[key] = cycle[nextIdx];
+
+      renderLearningSkillsTable();
+      triggerAutoSave();
+    }
+
+    /* In-Cell Trajectory Sparkline Generator */
+    function generateInlineSparkline(percentages) {
+      if (!percentages || percentages.length < 2) return '';
+      const w = 48, h = 18;
+      const min = Math.min(...percentages, 40);
+      const max = Math.max(...percentages, 100);
+      const range = max - min || 1;
+
+      const points = percentages.map((p, i) => {
+        const x = (i / (percentages.length - 1)) * (w - 4) + 2;
+        const y = h - ((p - min) / range) * (h - 6) - 3;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+
+      // Slope trajectory calculation
+      const first = percentages[0];
+      const last = percentages[percentages.length - 1];
+      const diff = last - first;
+
+      let strokeColor = '#0284c7'; // default blue
+      let badgeHtml = `<span class="trend-badge trend-neutral" title="Steady trend (Δ ${diff.toFixed(0)}%)">→</span>`;
+
+      if (diff >= 5) {
+        strokeColor = '#16a34a'; // green
+        badgeHtml = `<span class="trend-badge trend-up" title="Upward trajectory (+${diff.toFixed(0)}%)">↗</span>`;
+      } else if (diff <= -5) {
+        strokeColor = '#dc2626'; // red/amber
+        badgeHtml = `<span class="trend-badge trend-down" title="Downward intervention needed (${diff.toFixed(0)}%)">↘</span>`;
+      }
+
+      const svgHtml = `
+        <svg class="sparkline-svg" viewBox="0 0 ${w} ${h}">
+          <polyline points="${points}" stroke="${strokeColor}" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      `;
+
+      return `<span class="sparkline-wrapper" title="Trajectory: ${percentages.map(p => p.toFixed(0) + '%').join(' → ')}">${svgHtml}${badgeHtml}</span>`;
+    }
+
     function updateMark(studentIdx, colIdx, val) {
       activeStudents[studentIdx].marks[colIdx] = val.trim();
       recalculate();
@@ -1187,7 +1369,6 @@
       triggerAutoSave();
     }
 
-    /* Clipboard Copy Helper for Summary Columns */
     function copySummaryColumn(prefix, btnEl) {
       const rows = [];
       activeStudents.forEach((_, sIdx) => {
@@ -1237,6 +1418,7 @@
       return "Science & Technology";
     }
 
+    // Growing Success Comment Generator with integrated Learning Skills
     function generateGrowingSuccessComment(sIdx) {
       const st = activeStudents[sIdx];
       const firstName = getFirstName(st.name);
@@ -1272,6 +1454,7 @@
 
       let comment = `${firstName} has demonstrated a ${qualifier} understanding of ${strengthExpectation}, which was evident in their work on the ${strengthTask}.`;
 
+      // Next steps / Academic growth
       if (lowestItem && lowestItem !== bestItem) {
         let focusExpectation = lowestItem.expectation && lowestItem.expectation.trim() !== ''
           ? `strengthen skills in ${lowestItem.expectation.trim()}`
@@ -1280,6 +1463,22 @@
         comment += ` Moving forward, we will encourage ${firstName} to review feedback on the ${lowestItem.name} to ${focusExpectation}.`;
       } else {
         comment += ` Moving forward, we will encourage ${firstName} to continue applying these concepts toward extended, independent inquiry tasks.`;
+      }
+
+      // Learning Skills narrative synthesis
+      if (st.ls) {
+        let bestLs = [], growthLs = [];
+        LS_SKILLS.forEach(skill => {
+          const val = st.ls[skill.key];
+          if (val === 'E') bestLs.push(skill.label.toLowerCase());
+          if (val === 'S' || val === 'N') growthLs.push(skill.label.toLowerCase());
+        });
+
+        if (bestLs.length > 0 && growthLs.length > 0) {
+          comment += ` In the learning environment, ${firstName} demonstrates excellent ${bestLs[0]} during daily tasks, while continuing to strengthen ${growthLs[0]} skills to maximize academic growth.`;
+        } else if (bestLs.length > 0) {
+          comment += ` In the learning environment, ${firstName} consistently exhibits excellent ${bestLs.slice(0, 2).join(' and ')} during all classroom investigations.`;
+        }
       }
 
       return comment;
@@ -1346,6 +1545,10 @@
       }).join(' · ');
       document.getElementById('modalKicaSummary').innerText = catDisplay;
 
+      // Learning Skills string
+      const lsSummary = st.ls ? LS_SKILLS.map(s => `${s.key}:${st.ls[s.key] || '-'}`).join(' · ') : 'None evaluated';
+      document.getElementById('modalLsSummary').innerText = lsSummary;
+
       document.getElementById('modalGeneratedComment').innerText = generateGrowingSuccessComment(sIdx);
 
       modal.style.display = 'flex';
@@ -1405,6 +1608,17 @@
         `;
       });
 
+      // Learning Skills badges for print
+      const lsHtml = LS_SKILLS.map(s => {
+        const val = st.ls ? (st.ls[s.key] || '-') : '-';
+        return `
+          <div style="flex:1; text-align:center; padding:6px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px;">
+            <span style="font-size:0.65rem; color:#64748b; font-weight:bold; display:block;">${s.label}</span>
+            <b style="font-size:1rem; color:#1e40af;">${val}</b>
+          </div>
+        `;
+      }).join('');
+
       const reportHtml = `
         <div style="font-family: -apple-system, sans-serif; color: #0f172a; max-width: 850px; margin: 0 auto; padding: 20px;">
           <div style="border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:flex-end;">
@@ -1439,6 +1653,11 @@
               <span style="font-size: 0.68rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Application (A)</span>
               <div style="font-size: 1.1rem; font-weight: 800; color: #15803d;">${aLvl}</div>
             </div>
+          </div>
+
+          <h4 style="margin: 10px 0 6px 0; color: #1e293b;">Ontario Learning Skills &amp; Work Habits</h4>
+          <div style="display:flex; gap:6px; margin-bottom:15px;">
+            ${lsHtml}
           </div>
 
           <h4 style="margin: 10px 0 6px 0; color: #1e293b;">Assessment Breakdown</h4>
@@ -1772,6 +1991,7 @@
       activeStudents.forEach((st, sIdx) => {
         let earnedSum = 0;
         let appliedWeight = 0;
+        const studentPercentages = [];
 
         const catStats = {
           K: { earned: 0, weight: 0 },
@@ -1786,13 +2006,16 @@
           const w = (col.weight !== undefined && col.weight !== null) ? col.weight : 0;
           const cat = col.category || 'K';
 
-          if (pct !== null && w > 0) {
-            earnedSum += (pct * w);
-            appliedWeight += w;
+          if (pct !== null) {
+            studentPercentages.push(pct);
+            if (w > 0) {
+              earnedSum += (pct * w);
+              appliedWeight += w;
 
-            if (catStats[cat]) {
-              catStats[cat].earned += (pct * w);
-              catStats[cat].weight += w;
+              if (catStats[cat]) {
+                catStats[cat].earned += (pct * w);
+                catStats[cat].weight += w;
+              }
             }
           }
         });
@@ -1807,13 +2030,16 @@
         const cCell = document.getElementById(`c-level-${sIdx}`);
         const aCell = document.getElementById(`a-level-${sIdx}`);
 
+        // In-cell Sparkline & Trajectory computation
+        const sparklineHtml = generateInlineSparkline(studentPercentages);
+
         if (appliedWeight > 0) {
           const finalAverage = (earnedSum / appliedWeight).toFixed(1);
           const letter = getLetterGrade(finalAverage);
           const ontarioLevel = getOntarioLevel(finalAverage);
           const colorClass = getLevelColorClass(ontarioLevel);
 
-          avgCell.innerHTML = `<b>${finalAverage}%</b>`;
+          avgCell.innerHTML = `<b>${finalAverage}%</b>${sparklineHtml}`;
           badgeCell.innerHTML = `<span class="badge-letter">${letter}</span>`;
           
           const badgeHTML = `<span class="level-badge ${colorClass}">${ontarioLevel}</span>`;
@@ -1876,8 +2102,9 @@
       }
 
       const emptyMarks = new Array(activeColumns.length).fill('');
-      activeStudents.splice(insertIdx, 0, { name: name, notes: '', marks: emptyMarks });
+      activeStudents.splice(insertIdx, 0, { name: name, notes: '', marks: emptyMarks, ls: { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' } });
       renderTable();
+      renderLearningSkillsTable();
       triggerAutoSave();
     }
 
@@ -1885,6 +2112,7 @@
       if (confirm(`Remove ${activeStudents[index].name}?`)) {
         activeStudents.splice(index, 1);
         renderTable();
+        renderLearningSkillsTable();
         triggerAutoSave();
       }
     }
@@ -1905,7 +2133,7 @@
       if (posInput !== null && posInput.trim() !== '') {
         const parsed = parseInt(posInput.trim(), 10);
         if (!isNaN(parsed) && parsed >= 1) {
-          insertIdx = Math.min(Math.max(parsed - 1, 0), activeStudents.length);
+          insertIdx = Math.min(Math.max(parsed - 1, 0), activeColumns.length);
         }
       }
 
@@ -1919,9 +2147,9 @@
 
     function exportCSV() {
       const currentClass = currentClassKey.toUpperCase();
-      let csv = 'Student Name,Average Ontario Level,' + activeColumns.map(c => `"${c.name} [${c.category || 'K'}] - ${c.expectation || ''}"`).join(',') + ',Weighted Average,Letter Grade,Average Ontario Level,Knowledge Level (K),Thinking & Investigating Level (T),Communication Level (C),Application Level (A),Notes & Observations\n';
-      csv += 'Out Of,Max 4,' + activeColumns.map(c => c.max).join(',') + ',100%,-,Max 4,Max 4,Max 4,Max 4,Max 4,-\n';
-      csv += 'Weight,-,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-,-,-,-,-,-\n';
+      let csv = 'Student Name,Average Ontario Level,' + activeColumns.map(c => `"${c.name} [${c.category || 'K'}] - ${c.expectation || ''}"`).join(',') + ',Weighted Average,Letter Grade,Average Ontario Level,Knowledge Level (K),Thinking & Investigating Level (T),Communication Level (C),Application Level (A),Responsibility,Organization,Independent Work,Collaboration,Initiative,Self-Regulation,Notes & Observations\n';
+      csv += 'Out Of,Max 4,' + activeColumns.map(c => c.max).join(',') + ',100%,-,Max 4,Max 4,Max 4,Max 4,Max 4,-,-,-,-,-,-,-\n';
+      csv += 'Weight,-,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-,-,-,-,-,-,-,-,-,-,-,-,-\n';
 
       activeStudents.forEach((st, sIdx) => {
         const avg = document.getElementById(`avg-${sIdx}`).innerText;
@@ -1933,7 +2161,11 @@
         const aLvl = document.getElementById(`a-level-${sIdx}`).innerText;
         const notes = (st.notes || '').replace(/"/g, '""');
         const marks = activeColumns.map((_, cIdx) => `"${st.marks[cIdx] || ''}"`).join(',');
-        csv += `"${st.name}","${level}",${marks},${avg},${letter},"${level}","${kLvl}","${tLvl}","${cLvl}","${aLvl}","${notes}"\n`;
+
+        const ls = st.ls || {};
+        const lsVals = [ls.R || '-', ls.O || '-', ls.IN || '-', ls.C || '-', ls.I || '-', ls.S || '-'].join(',');
+
+        csv += `"${st.name}","${level}",${marks},${avg},${letter},"${level}","${kLvl}","${tLvl}","${cLvl}","${aLvl}",${lsVals},"${notes}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv' });
