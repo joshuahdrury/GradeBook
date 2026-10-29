@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher Gradebook - Ontario Curriculum Expectations & Analytics Edition</title>
+  <title>Teacher Gradebook - Ontario Growing Success & Analytics Edition</title>
 
   <!-- Instant Mobile Detection & Redirection -->
   <script>
@@ -116,7 +116,7 @@
 
     .col-floating-level {
       position: sticky; left: 240px; z-index: 3; background: var(--surface);
-      min-width: 105px; max-width: 105px; border-right: 2px solid #94a3b8;
+      min-width: 125px; max-width: 125px; border-right: 2px solid #94a3b8;
     }
     thead tr:nth-child(1) th.col-floating-level {
       position: sticky; top: 0; left: 240px; z-index: 10; background: #e2e8f0; border-right: 2px solid #94a3b8;
@@ -129,7 +129,8 @@
     }
 
     .col-summary { background: #f8fafc; font-weight: 600; min-width: 80px; }
-    thead th.col-summary { background: #e2e8f0; }
+    .col-category-level { background: #f8fafc; font-weight: 600; min-width: 110px; }
+    thead th.col-summary, thead th.col-category-level { background: #e2e8f0; }
 
     .col-notes-right {
       background: var(--surface); min-width: 260px; max-width: 340px; text-align: left;
@@ -319,7 +320,7 @@
     <header>
       <div>
         <h1>GradeBook Input & Weighting Portal</h1>
-        <p class="subtitle">Ontario Curriculum Expectations, Evidence Comments, & Visual Analytics.</p>
+        <p class="subtitle">Ontario Curriculum Expectations, KICA Category Levels, & Visual Analytics.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -390,7 +391,7 @@
             <div id="modalAvg" class="glance-stat-value">-</div>
           </div>
           <div class="glance-stat">
-            <div class="glance-stat-label">Ontario Level</div>
+            <div class="glance-stat-label">Average Ontario Level</div>
             <div id="modalLevel" class="glance-stat-value">-</div>
           </div>
           <div class="glance-stat">
@@ -584,7 +585,6 @@
       return null;
     }
 
-    // Default achievement categories & expectations
     const SCI_7_COLS = [
       { name: "Check in", max: 15, weight: 5, category: "K", expectation: "scientific vocabulary and basic concepts" },
       { name: "Ob In Quiz", max: 4, weight: 5, category: "T", expectation: "making observations and qualitative inferences" },
@@ -757,7 +757,11 @@
           marks: st.marks,
           avg: document.getElementById(`avg-${idx}`) ? document.getElementById(`avg-${idx}`).innerText : '',
           letter: document.getElementById(`badge-${idx}`) ? document.getElementById(`badge-${idx}`).innerText : '',
-          level: document.getElementById(`level-sticky-${idx}`) ? document.getElementById(`level-sticky-${idx}`).innerText : ''
+          level: document.getElementById(`level-sticky-${idx}`) ? document.getElementById(`level-sticky-${idx}`).innerText : '',
+          kLevel: document.getElementById(`k-level-${idx}`) ? document.getElementById(`k-level-${idx}`).innerText : '',
+          tLevel: document.getElementById(`t-level-${idx}`) ? document.getElementById(`t-level-${idx}`).innerText : '',
+          cLevel: document.getElementById(`c-level-${idx}`) ? document.getElementById(`c-level-${idx}`).innerText : '',
+          aLevel: document.getElementById(`a-level-${idx}`) ? document.getElementById(`a-level-${idx}`).innerText : ''
         }))
       };
 
@@ -856,19 +860,21 @@
       }
       if (notesColIdx === -1) notesColIdx = headerNames.length - 1;
 
+      // Locate where assessment columns end (first summary column)
       let endColIndex = -1;
       for (let i = 1; i < headerNames.length; i++) {
         const h = (headerNames[i] || '').toLowerCase();
-        if (h.includes('weighted') || h.includes('letter') || h.includes('ontario')) {
+        if (h.includes('weighted') || h.includes('letter') || h.includes('average ontario') || h.includes('ontario level')) {
           endColIndex = i;
           break;
         }
       }
-      if (endColIndex === -1) endColIndex = notesColIdx - 3;
+      if (endColIndex === -1) endColIndex = Math.max(1, notesColIdx - 7);
 
       const newCols = [];
       for (let c = 1; c < endColIndex; c++) {
-        const colTitle = headerNames[c] || `Test ${c}`;
+        let rawHeader = headerNames[c] || `Test ${c}`;
+        let colTitle = rawHeader.replace(/\s*\[[KTCA]\]/i, '').trim();
         const maxVal = parseFloat((maxScores[c] || '').toString().replace(/[^0-9.]/g, '')) || 4;
 
         let rawWeightStr = (weightRow[c] !== undefined && weightRow[c] !== null) ? weightRow[c].toString().trim() : '';
@@ -882,11 +888,15 @@
         }
 
         let category = 'K';
-        if (colTitle.toLowerCase().includes('(t)') || colTitle.toLowerCase().includes('inquiry') || colTitle.toLowerCase().includes('quiz') || colTitle.toLowerCase().includes('project')) category = 'T';
-        if (colTitle.toLowerCase().includes('(c)') || colTitle.toLowerCase().includes('report') || colTitle.toLowerCase().includes('function')) category = 'C';
-        if (colTitle.toLowerCase().includes('(a)') || colTitle.toLowerCase().includes('model') || colTitle.toLowerCase().includes('mix') || colTitle.toLowerCase().includes('impact')) category = 'A';
+        const bracketMatch = rawHeader.match(/\[([KTCA])\]/i);
+        if (bracketMatch) {
+          category = bracketMatch[1].toUpperCase();
+        } else {
+          if (colTitle.toLowerCase().includes('(t)') || colTitle.toLowerCase().includes('inquiry') || colTitle.toLowerCase().includes('quiz') || colTitle.toLowerCase().includes('project')) category = 'T';
+          if (colTitle.toLowerCase().includes('(c)') || colTitle.toLowerCase().includes('report') || colTitle.toLowerCase().includes('function')) category = 'C';
+          if (colTitle.toLowerCase().includes('(a)') || colTitle.toLowerCase().includes('model') || colTitle.toLowerCase().includes('mix') || colTitle.toLowerCase().includes('impact')) category = 'A';
+        }
 
-        // Check if cached column has existing expectation
         let expectation = '';
         if (activeColumns[c - 1] && activeColumns[c - 1].expectation) {
           expectation = activeColumns[c - 1].expectation;
@@ -928,7 +938,7 @@
 
       let hHtml = `
         <th class="col-student">Student Name</th>
-        <th class="col-floating-level">Ontario Level</th>
+        <th class="col-floating-level">Average Ontario Level</th>
       `;
       activeColumns.forEach((col, idx) => {
         const cat = col.category || 'K';
@@ -961,7 +971,11 @@
       hHtml += `
         <th class="col-summary">Weighted Avg</th>
         <th class="col-summary">Letter Grade</th>
-        <th class="col-summary">Ontario Level</th>
+        <th class="col-summary">Average Ontario Level</th>
+        <th class="col-category-level">Knowledge Level (K)</th>
+        <th class="col-category-level">Thinking & Investigating Level (T)</th>
+        <th class="col-category-level">Communication Level (C)</th>
+        <th class="col-category-level">Application Level (A)</th>
         <th class="col-notes-right">Notes & Observations</th>
         <th style="width:45px;">Action</th>
       `;
@@ -981,6 +995,10 @@
         <th class="col-summary">100%</th>
         <th class="col-summary">Scale</th>
         <th class="col-summary">Max 4</th>
+        <th class="col-category-level">Max 4</th>
+        <th class="col-category-level">Max 4</th>
+        <th class="col-category-level">Max 4</th>
+        <th class="col-category-level">Max 4</th>
         <th class="col-notes-right" style="font-size:0.75rem; color:var(--text-muted);">Teacher Notes</th>
         <th></th>
       `;
@@ -1000,6 +1018,10 @@
         <th class="col-summary" id="weightSummaryCell"></th>
         <th class="col-summary"></th>
         <th class="col-summary"></th>
+        <th class="col-category-level"></th>
+        <th class="col-category-level"></th>
+        <th class="col-category-level"></th>
+        <th class="col-category-level"></th>
         <th class="col-notes-right"></th>
         <th></th>
       `;
@@ -1059,6 +1081,10 @@
         <td class="col-summary" id="avg-${sIdx}">-</td>
         <td class="col-summary" id="badge-${sIdx}">-</td>
         <td class="col-summary" id="level-right-${sIdx}">-</td>
+        <td class="col-category-level" id="k-level-${sIdx}">-</td>
+        <td class="col-category-level" id="t-level-${sIdx}">-</td>
+        <td class="col-category-level" id="c-level-${sIdx}">-</td>
+        <td class="col-category-level" id="a-level-${sIdx}">-</td>
         <td class="col-notes-right">
           <input class="notes-input" id="notes-${sIdx}" value="${student.notes || ''}" 
             placeholder="Add note or [Test]: [note]..." 
@@ -1157,7 +1183,6 @@
       return "Science & Technology";
     }
 
-    // Growing Success Comment Generator with expectation integration
     function generateGrowingSuccessComment(sIdx) {
       const st = activeStudents[sIdx];
       const firstName = getFirstName(st.name);
@@ -1185,7 +1210,6 @@
         }
       });
 
-      // Integrate Expectation tag into Sentence 1 (Strength)
       let strengthExpectation = bestItem && bestItem.expectation && bestItem.expectation.trim() !== ''
         ? bestItem.expectation.trim()
         : `${subject} curriculum expectations`;
@@ -1194,7 +1218,6 @@
 
       let comment = `${firstName} has demonstrated a ${qualifier} understanding of ${strengthExpectation}, which was evident in their work on the ${strengthTask}.`;
 
-      // Integrate Expectation tag into Sentence 2 (Next Steps)
       if (lowestItem && lowestItem !== bestItem) {
         let focusExpectation = lowestItem.expectation && lowestItem.expectation.trim() !== ''
           ? `strengthen skills in ${lowestItem.expectation.trim()}`
@@ -1244,10 +1267,12 @@
         if (pct !== null) {
           if (pct > highestPct) {
             highestPct = pct;
+            bestItem = col;
             highestName = `${col.name} (${pct.toFixed(0)}%)`;
           }
           if (pct < lowestPct) {
             lowestPct = pct;
+            lowestItem = col;
             lowestName = `${col.name} (${pct.toFixed(0)}%)`;
           }
           if (w > 0) {
@@ -1261,8 +1286,9 @@
       document.getElementById('modalLowestWork').innerText = lowestPct <= 100 ? lowestName : 'No marks yet';
 
       const catDisplay = Object.keys(catTotals).map(k => {
-        const avg = catTotals[k].w > 0 ? (catTotals[k].sum / catTotals[k].w).toFixed(0) + '%' : '-';
-        return `${k}: ${avg}`;
+        const catAvg = catTotals[k].w > 0 ? (catTotals[k].sum / catTotals[k].w) : null;
+        const ontLvl = catAvg !== null ? getOntarioLevel(catAvg) : '-';
+        return `${k}: Level ${ontLvl}`;
       }).join(' · ');
       document.getElementById('modalKicaSummary').innerText = catDisplay;
 
@@ -1297,6 +1323,11 @@
       const level = document.getElementById(`level-sticky-${currentModalStudentIdx}`).innerText;
       const subject = getSubjectAreaName();
       const comment = generateGrowingSuccessComment(currentModalStudentIdx);
+
+      const kLvl = document.getElementById(`k-level-${currentModalStudentIdx}`)?.innerText || '-';
+      const tLvl = document.getElementById(`t-level-${currentModalStudentIdx}`)?.innerText || '-';
+      const cLvl = document.getElementById(`c-level-${currentModalStudentIdx}`)?.innerText || '-';
+      const aLvl = document.getElementById(`a-level-${currentModalStudentIdx}`)?.innerText || '-';
 
       let rowsHtml = '';
       activeColumns.forEach((col, cIdx) => {
@@ -1333,18 +1364,26 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 12px; margin-bottom: 15px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px;">
-            <div style="flex: 1; text-align: center;">
-              <span style="font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Overall Average</span>
-              <div style="font-size: 1.3rem; font-weight: 800; color: #1e40af;">${avg}</div>
+          <div style="display: flex; gap: 8px; margin-bottom: 15px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px;">
+            <div style="flex: 1.2; text-align: center;">
+              <span style="font-size: 0.68rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Average Level</span>
+              <div style="font-size: 1.2rem; font-weight: 800; color: #1e40af;">Level ${level} (${avg})</div>
             </div>
-            <div style="flex: 1; text-align: center; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1;">
-              <span style="font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Ontario Level</span>
-              <div style="font-size: 1.3rem; font-weight: 800; color: #15803d;">Level ${level}</div>
+            <div style="flex: 1; text-align: center; border-left: 1px solid #cbd5e1;">
+              <span style="font-size: 0.68rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Knowledge (K)</span>
+              <div style="font-size: 1.1rem; font-weight: 800; color: #b91c1c;">${kLvl}</div>
             </div>
-            <div style="flex: 1; text-align: center;">
-              <span style="font-size: 0.7rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Letter Grade</span>
-              <div style="font-size: 1.3rem; font-weight: 800; color: #0f172a;">${letter}</div>
+            <div style="flex: 1; text-align: center; border-left: 1px solid #cbd5e1;">
+              <span style="font-size: 0.68rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Thinking (T)</span>
+              <div style="font-size: 1.1rem; font-weight: 800; color: #4338ca;">${tLvl}</div>
+            </div>
+            <div style="flex: 1; text-align: center; border-left: 1px solid #cbd5e1;">
+              <span style="font-size: 0.68rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Communication (C)</span>
+              <div style="font-size: 1.1rem; font-weight: 800; color: #b45309;">${cLvl}</div>
+            </div>
+            <div style="flex: 1; text-align: center; border-left: 1px solid #cbd5e1;">
+              <span style="font-size: 0.68rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Application (A)</span>
+              <div style="font-size: 1.1rem; font-weight: 800; color: #15803d;">${aLvl}</div>
             </div>
           </div>
 
@@ -1396,7 +1435,7 @@
       activeColumns.forEach((col, cIdx) => {
         const opt = document.createElement('option');
         opt.value = cIdx;
-        opt.textContent = `${col.name} (out of ${col.max})`;
+        opt.textContent = `${col.name} [${col.category || 'K'}] (out of ${col.max})`;
         sel.appendChild(opt);
       });
 
@@ -1681,14 +1720,28 @@
         let earnedSum = 0;
         let appliedWeight = 0;
 
+        // Track Category Totals
+        const catStats = {
+          K: { earned: 0, weight: 0 },
+          T: { earned: 0, weight: 0 },
+          C: { earned: 0, weight: 0 },
+          A: { earned: 0, weight: 0 }
+        };
+
         activeColumns.forEach((col, cIdx) => {
           const rawMark = st.marks[cIdx];
           const pct = parseToPercent(rawMark, col.max);
           const w = (col.weight !== undefined && col.weight !== null) ? col.weight : 0;
+          const cat = col.category || 'K';
 
           if (pct !== null && w > 0) {
             earnedSum += (pct * w);
             appliedWeight += w;
+
+            if (catStats[cat]) {
+              catStats[cat].earned += (pct * w);
+              catStats[cat].weight += w;
+            }
           }
         });
 
@@ -1697,6 +1750,12 @@
         const levelStickyCell = document.getElementById(`level-sticky-${sIdx}`);
         const levelRightCell = document.getElementById(`level-right-${sIdx}`);
 
+        const kCell = document.getElementById(`k-level-${sIdx}`);
+        const tCell = document.getElementById(`t-level-${sIdx}`);
+        const cCell = document.getElementById(`c-level-${sIdx}`);
+        const aCell = document.getElementById(`a-level-${sIdx}`);
+
+        // Overall Weighted Standing
         if (appliedWeight > 0) {
           const finalAverage = (earnedSum / appliedWeight).toFixed(1);
           const letter = getLetterGrade(finalAverage);
@@ -1715,6 +1774,24 @@
           if (levelStickyCell) levelStickyCell.textContent = '-';
           if (levelRightCell) levelRightCell.textContent = '-';
         }
+
+        // Render individual K, T, C, A levels
+        const renderCategoryBadge = (targetCell, stats) => {
+          if (!targetCell) return;
+          if (stats.weight > 0) {
+            const catAvg = stats.earned / stats.weight;
+            const lvl = getOntarioLevel(catAvg);
+            const colClass = getLevelColorClass(lvl);
+            targetCell.innerHTML = `<span class="level-badge ${colClass}">${lvl}</span>`;
+          } else {
+            targetCell.textContent = '-';
+          }
+        };
+
+        renderCategoryBadge(kCell, catStats.K);
+        renderCategoryBadge(tCell, catStats.T);
+        renderCategoryBadge(cCell, catStats.C);
+        renderCategoryBadge(aCell, catStats.A);
       });
     }
 
@@ -1778,7 +1855,7 @@
       if (posInput !== null && posInput.trim() !== '') {
         const parsed = parseInt(posInput.trim(), 10);
         if (!isNaN(parsed) && parsed >= 1) {
-          insertIdx = Math.min(Math.max(parsed - 1, 0), activeColumns.length);
+          insertIdx = Math.min(Math.max(parsed - 1, 0), activeStudents.length);
         }
       }
 
@@ -1792,17 +1869,21 @@
 
     function exportCSV() {
       const currentClass = currentClassKey.toUpperCase();
-      let csv = 'Student Name,Ontario Level,' + activeColumns.map(c => `"${c.name} [${c.category || 'K'}] - ${c.expectation || ''}"`).join(',') + ',Weighted Average,Letter Grade,Ontario Level (Right),Notes & Observations\n';
-      csv += 'Out Of,Max 4,' + activeColumns.map(c => c.max).join(',') + ',100%,-,Max 4,-\n';
-      csv += 'Weight,-,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-,-\n';
+      let csv = 'Student Name,Average Ontario Level,' + activeColumns.map(c => `"${c.name} [${c.category || 'K'}] - ${c.expectation || ''}"`).join(',') + ',Weighted Average,Letter Grade,Average Ontario Level,Knowledge Level (K),Thinking & Investigating Level (T),Communication Level (C),Application Level (A),Notes & Observations\n';
+      csv += 'Out Of,Max 4,' + activeColumns.map(c => c.max).join(',') + ',100%,-,Max 4,Max 4,Max 4,Max 4,Max 4,-\n';
+      csv += 'Weight,-,' + activeColumns.map(c => c.weight + '%').join(',') + ',100%,-,-,-,-,-,-\n';
 
       activeStudents.forEach((st, sIdx) => {
         const avg = document.getElementById(`avg-${sIdx}`).innerText;
         const letter = document.getElementById(`badge-${sIdx}`).innerText;
         const level = document.getElementById(`level-sticky-${sIdx}`).innerText;
+        const kLvl = document.getElementById(`k-level-${sIdx}`).innerText;
+        const tLvl = document.getElementById(`t-level-${sIdx}`).innerText;
+        const cLvl = document.getElementById(`c-level-${sIdx}`).innerText;
+        const aLvl = document.getElementById(`a-level-${sIdx}`).innerText;
         const notes = (st.notes || '').replace(/"/g, '""');
         const marks = activeColumns.map((_, cIdx) => `"${st.marks[cIdx] || ''}"`).join(',');
-        csv += `"${st.name}","${level}",${marks},${avg},${letter},"${level}","${notes}"\n`;
+        csv += `"${st.name}","${level}",${marks},${avg},${letter},"${level}","${kLvl}","${tLvl}","${cLvl}","${aLvl}","${notes}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv' });
