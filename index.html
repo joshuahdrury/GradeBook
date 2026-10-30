@@ -386,7 +386,7 @@
     .stat-ribbon { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
     .stat-pill { background: #fff; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
 
-    /* Centered, Strict Single-Page Print Architecture */
+    /* Centered, Strict Single-Page Print Architecture with Wrapping */
     @page {
       size: portrait;
       margin: 1.2cm;
@@ -421,6 +421,20 @@
       .rubric-single-page {
         page-break-inside: avoid;
         break-inside: avoid;
+      }
+      /* Prevent lateral table spillover & enforce wrapping */
+      .print-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        table-layout: auto !important;
+      }
+      .print-table th, .print-table td {
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+        vertical-align: top !important;
+        height: auto !important;
       }
     }
   </style>
@@ -900,7 +914,7 @@
           { name: "Bratt; Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'G', S:'E' } },
           { name: "Gal; Itay", marks: ["9", "3", "9", "3+/4-", "3", "20", "11", "12", "12", "42", "14", "13"], ls: { R:'S', O:'S', IN:'S', C:'G', I:'S', S:'S' } },
           { name: "Gerwitz; Olivia", marks: ["15", "3", "13.5", "3", "4/4-", "27", "13", "14", "15", "51", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'E', I:'G', S:'G' } },
-          { name: "Goldenberg; Oliver", marks: ["15", "3", "14", "4", "3", "26", "14", "14", "14", "53", "17", "17"], ls: { R:'E', O:'G', IN:'G', C:'G', I:'E', S:'G' } },
+          { name: "Goldenberg; Oliver", marks: ["15", "3", "14", "4", "3", "26", "14", "14", "14", "53", "17", "17"], ls: { R:'E', O:'G', IN:'E', C:'G', I:'E', S:'G' } },
           { name: "Goodman; Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"], ls: { R:'G', O:'S', IN:'G', C:'G', I:'S', S:'G' } },
           { name: "Inspektor; Lev", marks: ["15", "4", "15", "3+/4-", "3+", "28", "14", "15", "15", "55", "19", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
           { name: "Katz; Graycie", marks: ["14", "3", "14", "3", "3+", "25", "13", "14", "14", "49", "16", "16"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
@@ -1597,7 +1611,7 @@
       alert(`Applied score of ${totalScore}/20 (Level ${ontLvl}) to ${st.name} for Lab Report #1!`);
     }
 
-    // Helper: Generates a single student's printable rubric card
+    /* Print Formatted PDF Rubric with Guaranteed Wrapping */
     function generateSingleRubricCardHTML(st, curSelections, curModifiers, isLast) {
       let total = 0;
       for (let i = 0; i < 5; i++) {
@@ -1615,20 +1629,20 @@
 
         tableRowsHtml += `
           <tr style="border-bottom: 1px solid #cbd5e1;">
-            <td style="padding: 4px 6px; font-weight: 700; background: #f8fafc; border-right: 1px solid #cbd5e1; font-size: 8pt; width: 20%;">
+            <td style="padding: 4px 6px; font-weight: 700; background: #f8fafc; border-right: 1px solid #cbd5e1; font-size: 8pt; width: 20%; min-width: 20%; max-width: 20%; line-height: 1.3;">
               ${item.criterion}
               <div style="font-size: 7.5pt; color: #1e40af; margin-top: 1px; font-weight: 800;">L${selLvl}${modStr}</div>
             </td>
-            <td style="padding: 4px 6px; border-right: 1px solid #cbd5e1; font-size: 8pt; width: 20%; ${selLvl === 1 ? 'background: #dbeafe !important; font-weight: 700; border: 2px solid #2563eb !important;' : ''}">
+            <td style="padding: 4px 6px; border-right: 1px solid #cbd5e1; font-size: 7.5pt; width: 20%; min-width: 20%; max-width: 20%; line-height: 1.35; ${selLvl === 1 ? 'background: #dbeafe !important; font-weight: 700; border: 2px solid #2563eb !important;' : ''}">
               ${selLvl === 1 ? '✓ ' : ''}${item.l1}
             </td>
-            <td style="padding: 4px 6px; border-right: 1px solid #cbd5e1; font-size: 8pt; width: 20%; ${selLvl === 2 ? 'background: #dbeafe !important; font-weight: 700; border: 2px solid #2563eb !important;' : ''}">
+            <td style="padding: 4px 6px; border-right: 1px solid #cbd5e1; font-size: 7.5pt; width: 20%; min-width: 20%; max-width: 20%; line-height: 1.35; ${selLvl === 2 ? 'background: #dbeafe !important; font-weight: 700; border: 2px solid #2563eb !important;' : ''}">
               ${selLvl === 2 ? '✓ ' : ''}${item.l2}
             </td>
-            <td style="padding: 4px 6px; border-right: 1px solid #cbd5e1; font-size: 8pt; width: 20%; ${selLvl === 3 ? 'background: #dbeafe !important; font-weight: 700; border: 2px solid #2563eb !important;' : ''}">
+            <td style="padding: 4px 6px; border-right: 1px solid #cbd5e1; font-size: 7.5pt; width: 20%; min-width: 20%; max-width: 20%; line-height: 1.35; ${selLvl === 3 ? 'background: #dbeafe !important; font-weight: 700; border: 2px solid #2563eb !important;' : ''}">
               ${selLvl === 3 ? '✓ ' : ''}${item.l3}
             </td>
-            <td style="padding: 4px 6px; font-size: 8pt; width: 20%; ${selLvl === 4 ? 'background: #dbeafe !important; font-weight: 700; border: 2px solid #2563eb !important;' : ''}">
+            <td style="padding: 4px 6px; font-size: 7.5pt; width: 20%; min-width: 20%; max-width: 20%; line-height: 1.35; ${selLvl === 4 ? 'background: #dbeafe !important; font-weight: 700; border: 2px solid #2563eb !important;' : ''}">
               ${selLvl === 4 ? '✓ ' : ''}${item.l4}
             </td>
           </tr>
@@ -1639,10 +1653,10 @@
 
       return `
         <div class="rubric-single-page ${!isLast ? 'print-page-break' : ''}" style="width: 100%; max-width: 100%; box-sizing: border-box; margin: 0 auto; padding: 0 4px; font-family: -apple-system, sans-serif; color: #0f172a;">
-          <div style="border-bottom: 2px solid #1e40af; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-end;">
+          <div style="border-bottom: 2px solid #1e40af; padding-bottom: 4px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: flex-end;">
             <div>
               <h2 style="margin: 0; color: #1e40af; font-size: 13pt;">Lab Report Evaluation Rubric</h2>
-              <h4 style="margin: 2px 0 0 0; color: #64748b; font-size: 9pt;">Grade 8 Science &amp; Technology — Class ${currentClassKey.toUpperCase()}</h4>
+              <h4 style="margin: 2px 0 0 0; color: #64748b; font-size: 8.5pt;">Grade 8 Science &amp; Technology — Class ${currentClassKey.toUpperCase()}</h4>
             </div>
             <div style="text-align: right;">
               <h3 style="margin: 0; font-size: 11pt;">${st.name}</h3>
@@ -1650,29 +1664,29 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 8px; margin-bottom: 8px; background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 6px 10px; border-radius: 6px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 6px; background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 5px 8px; border-radius: 6px;">
             <div style="flex: 1; text-align: center;">
               <span style="font-size: 7pt; color: #64748b; font-weight: bold; text-transform: uppercase;">Total Score</span>
-              <div style="font-size: 12pt; font-weight: 800; color: #1e40af;">${totalScore} / 20</div>
+              <div style="font-size: 11.5pt; font-weight: 800; color: #1e40af;">${totalScore} / 20</div>
             </div>
             <div style="flex: 1; text-align: center; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1;">
               <span style="font-size: 7pt; color: #64748b; font-weight: bold; text-transform: uppercase;">Percentage</span>
-              <div style="font-size: 12pt; font-weight: 800; color: #0f172a;">${pct.toFixed(1)}%</div>
+              <div style="font-size: 11.5pt; font-weight: 800; color: #0f172a;">${pct.toFixed(1)}%</div>
             </div>
             <div style="flex: 1; text-align: center;">
               <span style="font-size: 7pt; color: #64748b; font-weight: bold; text-transform: uppercase;">Ontario Level</span>
-              <div style="font-size: 12pt; font-weight: 800; color: #15803d;">Level ${ontLvl}</div>
+              <div style="font-size: 11.5pt; font-weight: 800; color: #15803d;">Level ${ontLvl}</div>
             </div>
           </div>
 
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px; table-layout: fixed;">
+          <table class="print-table" style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
             <thead>
               <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1; text-align: left;">Criteria</th>
-                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1;">Level 1</th>
-                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1;">Level 2</th>
-                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1;">Level 3</th>
-                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1;">Level 4</th>
+                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1; text-align: left; width: 20%;">Criteria</th>
+                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1; text-align: left; width: 20%;">Level 1</th>
+                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1; text-align: left; width: 20%;">Level 2</th>
+                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1; text-align: left; width: 20%;">Level 3</th>
+                <th style="padding: 4px 6px; font-size: 8pt; border: 1px solid #cbd5e1; text-align: left; width: 20%;">Level 4</th>
               </tr>
             </thead>
             <tbody>
@@ -1680,14 +1694,14 @@
             </tbody>
           </table>
 
-          <div style="border-top: 1px solid #cbd5e1; padding-top: 6px; margin-top: 6px;">
+          <div style="border-top: 1px solid #cbd5e1; padding-top: 5px; margin-top: 4px;">
             <b style="font-size: 7.5pt; color: #475569; display: block; margin-bottom: 2px;">TEACHER OBSERVATIONS &amp; NEXT STEPS:</b>
-            <div style="min-height: 38px; border: 1px dashed #94a3b8; border-radius: 4px; padding: 4px 6px; font-size: 7.5pt; color: #334155; line-height: 1.3;">
+            <div style="min-height: 34px; border: 1px dashed #94a3b8; border-radius: 4px; padding: 4px 6px; font-size: 7.5pt; color: #334155; line-height: 1.35; white-space: normal; overflow-wrap: break-word;">
               ${noteText}
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; margin-top: 14px; font-size: 7.5pt; color: #64748b;">
+          <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 7.5pt; color: #64748b;">
             <span>Teacher Signature: _________________________</span>
             <span>Parent/Guardian Signature: _________________________</span>
           </div>
@@ -1695,18 +1709,15 @@
       `;
     }
 
-    // Prints Individual or Full Class Batch Rubrics
     function printRubricPDF(isBatch) {
       const printArea = document.getElementById('printableReportArea');
       let finalHtml = '';
 
       if (isBatch) {
-        // Iterate through all students in active class
         activeStudents.forEach((st, idx) => {
           let sSelections = { 0: 3, 1: 3, 2: 3, 3: 3, 4: 3 };
           let sModifiers = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
 
-          // If current student has existing mark, map to selections
           const markVal = parseFloat(st.marks[1] || '16');
           let baseLvl = 3;
           if (markVal >= 18) baseLvl = 4;
@@ -1716,7 +1727,6 @@
 
           sSelections = { 0: baseLvl, 1: baseLvl, 2: baseLvl, 3: baseLvl, 4: baseLvl };
 
-          // If the student currently open in modal is this student, use active manual selections
           if (idx === activeRubricStudentIdx) {
             sSelections = rubricSelections;
             sModifiers = rubricModifiers;
@@ -1726,7 +1736,6 @@
           finalHtml += generateSingleRubricCardHTML(st, sSelections, sModifiers, isLast);
         });
       } else {
-        // Single student print
         if (activeRubricStudentIdx === null) return;
         const st = activeStudents[activeRubricStudentIdx];
         finalHtml = generateSingleRubricCardHTML(st, rubricSelections, rubricModifiers, true);
@@ -2063,13 +2072,13 @@
 
         rowsHtml += `
           <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 4px 6px; font-weight:600; font-size:8pt;">${col.name}</td>
-            <td style="padding: 4px 6px; font-size:7.5pt; color:#0369a1;">${exp}</td>
-            <td style="padding: 4px 6px; text-align:center; font-size:8pt;">${col.category || 'K'}</td>
-            <td style="padding: 4px 6px; text-align:center; font-size:8pt;">${raw} / ${col.max}</td>
-            <td style="padding: 4px 6px; text-align:center; font-size:8pt;">${pctStr}</td>
-            <td style="padding: 4px 6px; text-align:center; font-weight:bold; font-size:8pt;">${ontLevel}</td>
-            <td style="padding: 4px 6px; font-size:7.5pt; color:#475569;">${note}</td>
+            <td style="padding: 4px 6px; font-weight:600; font-size:8pt; width:22%;">${col.name}</td>
+            <td style="padding: 4px 6px; font-size:7.5pt; color:#0369a1; width:26%;">${exp}</td>
+            <td style="padding: 4px 6px; text-align:center; font-size:8pt; width:8%;">${col.category || 'K'}</td>
+            <td style="padding: 4px 6px; text-align:center; font-size:8pt; width:12%;">${raw} / ${col.max}</td>
+            <td style="padding: 4px 6px; text-align:center; font-size:8pt; width:10%;">${pctStr}</td>
+            <td style="padding: 4px 6px; text-align:center; font-weight:bold; font-size:8pt; width:8%;">${ontLevel}</td>
+            <td style="padding: 4px 6px; font-size:7.5pt; color:#475569; width:14%;">${note}</td>
           </tr>
         `;
       });
@@ -2086,10 +2095,10 @@
 
       const reportHtml = `
         <div class="rubric-single-page" style="width: 100%; max-width: 100%; box-sizing: border-box; margin: 0 auto; padding: 0 4px; font-family: -apple-system, sans-serif; color: #0f172a;">
-          <div style="border-bottom: 2px solid #1e40af; padding-bottom: 4px; margin-bottom: 8px; display:flex; justify-content:space-between; align-items:flex-end;">
+          <div style="border-bottom: 2px solid #1e40af; padding-bottom: 4px; margin-bottom: 6px; display:flex; justify-content:space-between; align-items:flex-end;">
             <div>
               <h2 style="margin: 0; color: #1e40af; font-size:13pt;">Student Progress Report</h2>
-              <h4 style="margin: 2px 0 0 0; color: #64748b; font-size:9pt;">${subject} — Class ${currentClassKey.toUpperCase()}</h4>
+              <h4 style="margin: 2px 0 0 0; color: #64748b; font-size:8.5pt;">${subject} — Class ${currentClassKey.toUpperCase()}</h4>
             </div>
             <div style="text-align: right;">
               <h3 style="margin: 0; font-size:11pt;">${st.name}</h3>
@@ -2097,7 +2106,7 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 8px; margin-bottom: 8px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px;">
+          <div style="display: flex; gap: 8px; margin-bottom: 6px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 5px 8px; border-radius: 6px;">
             <div style="flex: 1.2; text-align: center;">
               <span style="font-size: 6.8pt; color: #64748b; font-weight: bold; text-transform: uppercase;">Average Level</span>
               <div style="font-size: 11pt; font-weight: 800; color: #1e40af;">Level ${level} (${avg})</div>
@@ -2120,13 +2129,13 @@
             </div>
           </div>
 
-          <h4 style="margin: 8px 0 4px 0; color: #1e293b; font-size:8.5pt;">Ontario Learning Skills &amp; Work Habits</h4>
-          <div style="display:flex; gap:6px; margin-bottom:8px;">
+          <h4 style="margin: 6px 0 4px 0; color: #1e293b; font-size:8.5pt;">Ontario Learning Skills &amp; Work Habits</h4>
+          <div style="display:flex; gap:6px; margin-bottom:6px;">
             ${lsHtml}
           </div>
 
-          <h4 style="margin: 8px 0 4px 0; color: #1e293b; font-size:8.5pt;">Assessment Breakdown</h4>
-          <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px; table-layout: fixed;">
+          <h4 style="margin: 6px 0 4px 0; color: #1e293b; font-size:8.5pt;">Assessment Breakdown</h4>
+          <table class="print-table" style="width: 100%; border-collapse: collapse; margin-bottom: 6px;">
             <thead>
               <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1; text-align: left;">
                 <th style="padding: 4px 6px; font-size:8pt; width:22%;">Assessment Title</th>
@@ -2143,15 +2152,15 @@
             </tbody>
           </table>
 
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 6px 10px; border-radius: 6px; margin-bottom: 8px;">
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 6px 10px; border-radius: 6px; margin-bottom: 6px;">
             <b style="font-size: 7.5pt; color: #166534; display:block; margin-bottom: 2px;">GROWING SUCCESS PROGRESS SUMMARY:</b>
-            <p style="font-size: 8pt; line-height: 1.35; color: #14532d; font-style: italic; margin: 0;">${comment}</p>
+            <p style="font-size: 7.5pt; line-height: 1.35; color: #14532d; font-style: italic; margin: 0; white-space: normal; overflow-wrap: break-word;">${comment}</p>
           </div>
 
           ${st.notes ? `
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px;">
             <b style="font-size: 7.5pt; color: #475569; display:block; margin-bottom: 2px;">GENERAL TEACHER OBSERVATIONS:</b>
-            <p style="font-size: 7.5pt; margin: 0;">${st.notes}</p>
+            <p style="font-size: 7.5pt; margin: 0; white-space: normal; overflow-wrap: break-word;">${st.notes}</p>
           </div>` : ''}
         </div>
       `;
