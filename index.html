@@ -103,7 +103,6 @@
     .ls-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: center; }
     .ls-table td.name-col { text-align: left; font-weight: 600; min-width: 180px; }
 
-    /* E/G/S/N Clickable Badge Chips */
     .ls-chip {
       display: inline-block; width: 28px; height: 26px; line-height: 24px;
       border-radius: 6px; font-weight: 800; font-size: 0.8rem; text-align: center;
@@ -134,7 +133,7 @@
     thead tr:nth-child(2) th { position: sticky; top: 82px; z-index: 5; background: #f8fafc; font-weight: 500; color: #64748b; font-size: 0.75rem; }
     thead tr:nth-child(3) th { position: sticky; top: 112px; z-index: 5; background: #e0f2fe; color: #0369a1; font-weight: 600; font-size: 0.75rem; }
 
-    /* Dual Sticky Left Columns with High Opaque Stacking Context */
+    /* Dual Sticky Left Columns */
     .col-student {
       position: sticky; left: 0; z-index: 10; background: #ffffff !important; text-align: left;
       font-weight: 600; min-width: 240px; max-width: 240px;
@@ -192,7 +191,6 @@
     }
     .btn-rubric-trigger:hover { background: #dbeafe; }
 
-    /* In-cell Sparkline & Trajectory Styling */
     .sparkline-wrapper {
       display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; vertical-align: middle;
     }
@@ -304,7 +302,7 @@
       overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3); animation: popIn 0.18s ease-out;
     }
     .modal-card-rubric {
-      background: #ffffff; border-radius: 14px; max-width: 950px; width: 96%; max-height: 90vh;
+      background: #ffffff; border-radius: 14px; max-width: 1020px; width: 96%; max-height: 90vh;
       overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); animation: popIn 0.18s ease-out;
     }
     @keyframes popIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -352,7 +350,18 @@
       background: #e0f2fe !important;
     }
     .rubric-selected {
-      background: #dbeafe !important; border: 2px solid #2563eb !important; font-weight: 700;
+      background: #dbeafe !important; border: 2.5px solid #2563eb !important; font-weight: 700;
+      box-shadow: inset 0 0 0 1px #2563eb;
+    }
+    .modifier-chip-group {
+      display: flex; gap: 4px; margin-top: 6px;
+    }
+    .modifier-chip {
+      font-size: 0.7rem; font-weight: 800; padding: 1px 6px; border-radius: 4px;
+      border: 1px solid #cbd5e1; background: #fff; cursor: pointer; color: #475569;
+    }
+    .modifier-chip.active {
+      background: #2563eb; color: #fff; border-color: #1d4ed8;
     }
 
     .analytics-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1rem; }
@@ -415,11 +424,11 @@
             <option value="6ch">6CH</option>
           </optgroup>
           <optgroup label="Grade 7">
-            <option value="7av" selected>7AV</option><option value="7bv">7BV</option><option value="7cv">7CV</option>
+            <option value="7av">7AV</option><option value="7bv">7BV</option><option value="7cv">7CV</option>
             <option value="7dv">7DV</option><option value="7ah">7AH</option><option value="7bh">7BH</option>
           </optgroup>
           <optgroup label="Grade 8">
-            <option value="8av">8AV</option><option value="8bv">8BV</option><option value="8cv">8CV</option>
+            <option value="8av" selected>8AV</option><option value="8bv">8BV</option><option value="8cv">8CV</option>
             <option value="8dv">8DV</option><option value="8ah">8AH</option><option value="8bh">8BH</option>
             <option value="8ch">8CH</option>
           </optgroup>
@@ -485,13 +494,13 @@
           </span>
         </div>
         <span style="color: var(--text-muted);">
-          <b>Grade 8 Feature:</b> Click <b>📑 Rubric</b> on Lab Report #1 to grade using the interactive rubric
+          <b>Grade 8 Feature:</b> Click <b>📑 Rubric</b> on Lab Report #1 to grade using the interactive rubric &amp; print PDF
         </span>
       </div>
     </div>
   </div>
 
-  <!-- Interactive Rubric Modal -->
+  <!-- Interactive Rubric Modal with Half-Marks & PDF Print -->
   <div id="rubricModal" class="modal-overlay" onclick="handleRubricBackdrop(event)">
     <div class="modal-card-rubric">
       <div class="modal-header">
@@ -499,7 +508,12 @@
           <h3 style="color:#1e40af;">Scientific Presentation &amp; Lab Rubric</h3>
           <span id="rubricStudentTarget" style="font-size:0.85rem; font-weight:700; color:#475569;">Target: Student</span>
         </div>
-        <button class="btn-close-modal" onclick="closeRubricModal()">&times;</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button onclick="printRubricPDF()" class="btn-primary" style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; font-size:0.8rem;">
+            🖨️ Print Rubric PDF
+          </button>
+          <button class="btn-close-modal" onclick="closeRubricModal()">&times;</button>
+        </div>
       </div>
       <div class="modal-body">
         <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px 12px; border-radius:8px; border:1px solid var(--border);">
@@ -508,27 +522,32 @@
             <select id="rubricStudentSelect" onchange="loadStudentRubric(this.value)" style="font-size:0.825rem; padding:3px 6px;"></select>
           </div>
           <div>
-            <span>Calculated Score: <b id="rubricScoreDisplay" style="font-size:1.1rem; color:#1e40af;">- / 20</b></span>
-            <span style="margin-left:12px;">Level: <b id="rubricLevelDisplay" style="font-size:1.1rem; color:#15803d;">-</b></span>
+            <span>Calculated Score: <b id="rubricScoreDisplay" style="font-size:1.15rem; color:#1e40af;">- / 20</b></span>
+            <span style="margin-left:14px;">Ontario Level: <b id="rubricLevelDisplay" style="font-size:1.15rem; color:#15803d;">-</b></span>
           </div>
         </div>
 
         <table class="rubric-table">
           <thead>
             <tr>
-              <th style="width:18%;">Criteria</th>
-              <th style="width:20.5%;">Level 1 (50-59%)</th>
-              <th style="width:20.5%;">Level 2 (60-69%)</th>
-              <th style="width:20.5%;">Level 3 (70-79%)</th>
-              <th style="width:20.5%;">Level 4 (80-100%)</th>
+              <th style="width:20%;">Criteria &amp; Fine-Tune</th>
+              <th style="width:20%;">Level 1 (50-59%)</th>
+              <th style="width:20%;">Level 2 (60-69%)</th>
+              <th style="width:20%;">Level 3 (70-79%)</th>
+              <th style="width:20%;">Level 4 (80-100%)</th>
             </tr>
           </thead>
           <tbody id="rubricTableBody"></tbody>
         </table>
 
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:0.5rem;">
-          <button onclick="closeRubricModal()" style="padding:6px 12px; font-weight:600;">Cancel</button>
-          <button onclick="applyRubricGrade()" class="btn-primary" style="padding:6px 16px; font-weight:700;">Apply &amp; Insert Grade</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
+          <span style="font-size:0.75rem; color:var(--text-muted);">
+            *Use the <b>(-) / Std / (+)</b> buttons on each criterion row to assign intermediate half-marks (e.g. Level 3+, 4-, or in-between decimal points).
+          </span>
+          <div style="display:flex; gap:8px;">
+            <button onclick="closeRubricModal()" style="padding:6px 12px; font-weight:600;">Cancel</button>
+            <button onclick="applyRubricGrade()" class="btn-primary" style="padding:6px 16px; font-weight:700;">Apply &amp; Insert Grade</button>
+          </div>
         </div>
       </div>
     </div>
@@ -576,7 +595,6 @@
           </div>
         </div>
 
-        <!-- Evidence-Based Comment Starter -->
         <div class="comment-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <b style="font-size:0.75rem; color:#166534;">ONTARIO GROWING SUCCESS COMMENT STARTER:</b>
@@ -639,7 +657,7 @@
     </div>
   </div>
 
-  <!-- Hidden Clean Printable Progress Report Container -->
+  <!-- Printable Container (Used for Progress Reports & Rubric PDFs) -->
   <div id="printableReportArea" style="display:none;"></div>
 
   <script>
@@ -691,7 +709,6 @@
       { key: 'S', label: 'Self-Regulation' }
     ];
 
-    // Rubric Definition directly extracted from user document
     const RUBRIC_DATA = [
       {
         criterion: "Clarity",
@@ -731,7 +748,8 @@
     ];
 
     let activeRubricStudentIdx = null;
-    let rubricSelections = { 0: 3, 1: 3, 2: 3, 3: 3, 4: 3 }; // default L3s
+    let rubricSelections = { 0: 3, 1: 3, 2: 3, 3: 3, 4: 3 }; 
+    let rubricModifiers = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 }; // -0.35, 0, or +0.35 for half-levels
 
     function getLetterGrade(pct) {
       if (pct >= 95) return 'A';
@@ -873,10 +891,10 @@
       '8av': {
         columns: SCI_8_COLS,
         students: [
-          { name: "Applebaum; Parker", marks: ["9", "18", "27", "35", "15", "46", "11"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Applebaum; Parker", marks: ["9", "18.5", "27", "35", "15", "46", "11"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
           { name: "Bacal; Catherine", marks: ["10", "19", "28", "37", "16", "48", "12"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
           { name: "Ball; Hudson", marks: ["8", "16", "24", "31", "13", "40", "10"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
-          { name: "Baruch; Max", marks: ["9.5", "17", "26", "34", "14", "44", "11"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'G', S:'E' } },
+          { name: "Baruch; Max", marks: ["9.5", "17.5", "26", "34", "14", "44", "11"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'G', S:'E' } },
           { name: "Cole; Noah", marks: ["9", "18", "26", "35", "15", "45", "11"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
           "Finkelstein; William", "Grinstein; Riley", "Grossman; Cameron", "Katz; Jack", "Kraft; Hyla", "Leibson; Liya", "Levy Dror; Amielle", "Margau; Kayla", "Moskowitz; Zoe", "Ostro; Avery", "Pilarski; Jayme", "Reidiboim; Samantha", "Sacks; Cole", "Shahak-Broder; Alma", "Singer; Radley", "Weintraub; Nediva"
         ]
@@ -1154,8 +1172,6 @@
         const cat = col.category || 'K';
         const badgeClass = `badge-${cat.toLowerCase()}`;
         const expVal = col.expectation || '';
-
-        // Check if this is the Grade 8 Lab Report column (Col 2 or name match)
         const isLabReportCol = col.name.toLowerCase().includes('lab report') || (idx === 1 && currentClassKey.startsWith('8'));
 
         hHtml += `<th>
@@ -1334,7 +1350,7 @@
       const isLabCol = col.name.toLowerCase().includes('lab report') || (cIdx === 1 && currentClassKey.startsWith('8'));
 
       if (isLabCol) {
-        const choice = confirm(`Would you like to open the interactive rubric for ${activeStudents[sIdx].name}?\n\nClick "OK" for Rubric, or "Cancel" to edit notes.`);
+        const choice = confirm(`Open interactive rubric for ${activeStudents[sIdx].name}?\n\nClick "OK" for Rubric & Print PDF, or "Cancel" to edit notes.`);
         if (choice) {
           openRubricModal(sIdx);
           return;
@@ -1397,12 +1413,11 @@
       triggerAutoSave();
     }
 
-    /* Interactive Rubric Functions */
+    /* Interactive Rubric Functions with Half-Marks & PDF Print */
     function openRubricModal(sIdx) {
       activeRubricStudentIdx = sIdx !== undefined ? sIdx : 0;
       const modal = document.getElementById('rubricModal');
 
-      // Populate student selector
       const select = document.getElementById('rubricStudentSelect');
       select.innerHTML = '';
       activeStudents.forEach((st, i) => {
@@ -1430,15 +1445,15 @@
       const st = activeStudents[activeRubricStudentIdx];
       document.getElementById('rubricStudentTarget').textContent = `Target: ${st.name} — Class ${currentClassKey.toUpperCase()}`;
 
-      // Try to parse existing score to default selections
       const labMark = parseFloat(st.marks[1] || '16');
-      let defaultLvl = 3;
-      if (labMark >= 18) defaultLvl = 4;
-      else if (labMark >= 15) defaultLvl = 3;
-      else if (labMark >= 13) defaultLvl = 2;
-      else defaultLvl = 1;
+      let baseLvl = 3;
+      if (labMark >= 18) baseLvl = 4;
+      else if (labMark >= 15) baseLvl = 3;
+      else if (labMark >= 13) baseLvl = 2;
+      else baseLvl = 1;
 
-      rubricSelections = { 0: defaultLvl, 1: defaultLvl, 2: defaultLvl, 3: defaultLvl, 4: defaultLvl };
+      rubricSelections = { 0: baseLvl, 1: baseLvl, 2: baseLvl, 3: baseLvl, 4: baseLvl };
+      rubricModifiers = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
 
       renderRubricTable();
       updateRubricScoreDisplay();
@@ -1451,20 +1466,37 @@
       RUBRIC_DATA.forEach((item, rIdx) => {
         const tr = document.createElement('tr');
         const selectedLvl = rubricSelections[rIdx];
+        const activeMod = rubricModifiers[rIdx] || 0;
+
+        let modDisplay = '';
+        if (activeMod > 0) modDisplay = '+';
+        else if (activeMod < 0) modDisplay = '-';
 
         tr.innerHTML = `
-          <td style="font-weight:700; background:#f8fafc;">${item.criterion}</td>
+          <td style="font-weight:700; background:#f8fafc;">
+            ${item.criterion}
+            <div style="font-size:0.7rem; color:var(--text-muted); font-weight:normal; margin-top:2px;">Fine-tune Level:</div>
+            <div class="modifier-chip-group">
+              <button class="modifier-chip ${activeMod < 0 ? 'active' : ''}" onclick="setRubricModifier(${rIdx}, -0.35)">(-)</button>
+              <button class="modifier-chip ${activeMod === 0 ? 'active' : ''}" onclick="setRubricModifier(${rIdx}, 0)">Std</button>
+              <button class="modifier-chip ${activeMod > 0 ? 'active' : ''}" onclick="setRubricModifier(${rIdx}, 0.35)">(+)</button>
+            </div>
+          </td>
           <td class="rubric-cell-selectable ${selectedLvl === 1 ? 'rubric-selected' : ''}" onclick="selectRubricLevel(${rIdx}, 1)">
             ${item.l1}
+            ${selectedLvl === 1 && modDisplay ? `<span style="float:right; font-weight:800; color:#1d4ed8;">[L1${modDisplay}]</span>` : ''}
           </td>
           <td class="rubric-cell-selectable ${selectedLvl === 2 ? 'rubric-selected' : ''}" onclick="selectRubricLevel(${rIdx}, 2)">
             ${item.l2}
+            ${selectedLvl === 2 && modDisplay ? `<span style="float:right; font-weight:800; color:#1d4ed8;">[L2${modDisplay}]</span>` : ''}
           </td>
           <td class="rubric-cell-selectable ${selectedLvl === 3 ? 'rubric-selected' : ''}" onclick="selectRubricLevel(${rIdx}, 3)">
             ${item.l3}
+            ${selectedLvl === 3 && modDisplay ? `<span style="float:right; font-weight:800; color:#1d4ed8;">[L3${modDisplay}]</span>` : ''}
           </td>
           <td class="rubric-cell-selectable ${selectedLvl === 4 ? 'rubric-selected' : ''}" onclick="selectRubricLevel(${rIdx}, 4)">
             ${item.l4}
+            ${selectedLvl === 4 && modDisplay ? `<span style="float:right; font-weight:800; color:#1d4ed8;">[L4${modDisplay}]</span>` : ''}
           </td>
         `;
         tbody.appendChild(tr);
@@ -1477,36 +1509,47 @@
       updateRubricScoreDisplay();
     }
 
-    function updateRubricScoreDisplay() {
-      let totalLevels = 0;
+    function setRubricModifier(criterionIdx, modVal) {
+      rubricModifiers[criterionIdx] = modVal;
+      renderRubricTable();
+      updateRubricScoreDisplay();
+    }
+
+    function calculateTotalRubricScore() {
+      let total = 0;
       for (let i = 0; i < 5; i++) {
-        totalLevels += (rubricSelections[i] || 3);
+        total += (rubricSelections[i] || 3) + (rubricModifiers[i] || 0);
       }
-      // 5 criteria, maximum 20 points (e.g. 5 x 4 = 20)
-      const calculatedScore = totalLevels; 
+      return Math.round(total * 2) / 2; // round to nearest half mark
+    }
+
+    function updateRubricScoreDisplay() {
+      const calculatedScore = calculateTotalRubricScore();
       const pct = (calculatedScore / 20) * 100;
       const ontLvl = getOntarioLevel(pct);
 
-      document.getElementById('rubricScoreDisplay').textContent = `${calculatedScore} / 20 (${pct.toFixed(0)}%)`;
+      document.getElementById('rubricScoreDisplay').textContent = `${calculatedScore} / 20 (${pct.toFixed(1)}%)`;
       document.getElementById('rubricLevelDisplay').textContent = `Level ${ontLvl}`;
     }
 
     function applyRubricGrade() {
       if (activeRubricStudentIdx === null) return;
-      let totalLevels = 0;
+      const totalScore = calculateTotalRubricScore();
+      const pct = (totalScore / 20) * 100;
+      const ontLvl = getOntarioLevel(pct);
+
       let summaryParts = [];
       for (let i = 0; i < 5; i++) {
-        const lvl = rubricSelections[i] || 3;
-        totalLevels += lvl;
-        summaryParts.push(`${RUBRIC_DATA[i].criterion}: L${lvl}`);
+        const lvl = rubricSelections[i];
+        const mod = rubricModifiers[i];
+        let sign = mod > 0 ? '+' : (mod < 0 ? '-' : '');
+        summaryParts.push(`${RUBRIC_DATA[i].criterion}: L${lvl}${sign}`);
       }
 
       const st = activeStudents[activeRubricStudentIdx];
-      // Insert score into Lab Report #1 column (index 1)
-      st.marks[1] = totalLevels.toString();
+      st.marks[1] = totalScore.toString();
 
-      // Append rubric evidence to student note
-      const rubricNote = `Lab Report #1 (${summaryParts.join(', ')})`;
+      const rubricNote = `Lab Report #1: L${ontLvl} (${summaryParts.join(', ')})`;
       let curNotes = st.notes || '';
       if (!curNotes.includes('Lab Report #1')) {
         curNotes = curNotes ? `${curNotes}; ${rubricNote}` : rubricNote;
@@ -1518,7 +1561,107 @@
       renderTable();
       triggerAutoSave();
       closeRubricModal();
-      alert(`Applied score of ${totalLevels}/20 to ${st.name} for Lab Report #1!`);
+      alert(`Applied score of ${totalScore}/20 (Level ${ontLvl}) to ${st.name} for Lab Report #1!`);
+    }
+
+    /* Print Formatted PDF Rubric */
+    function printRubricPDF() {
+      if (activeRubricStudentIdx === null) return;
+      const st = activeStudents[activeRubricStudentIdx];
+      const totalScore = calculateTotalRubricScore();
+      const pct = (totalScore / 20) * 100;
+      const ontLvl = getOntarioLevel(pct);
+
+      let tableRowsHtml = '';
+      RUBRIC_DATA.forEach((item, rIdx) => {
+        const selLvl = rubricSelections[rIdx];
+        const mod = rubricModifiers[rIdx] || 0;
+        let modStr = mod > 0 ? ' (+)' : (mod < 0 ? ' (-)' : '');
+
+        tableRowsHtml += `
+          <tr style="border-bottom: 1px solid #cbd5e1;">
+            <td style="padding: 8px; font-weight: 700; background: #f8fafc; border-right: 1px solid #cbd5e1;">
+              ${item.criterion}
+              <div style="font-size:0.75rem; color:#1e40af; margin-top:2px;">Awarded: Level ${selLvl}${modStr}</div>
+            </td>
+            <td style="padding: 8px; border-right: 1px solid #cbd5e1; ${selLvl === 1 ? 'background:#dbeafe; font-weight:bold; border:2px solid #2563eb;' : ''}">
+              ${selLvl === 1 ? '✓ ' : ''}${item.l1}
+            </td>
+            <td style="padding: 8px; border-right: 1px solid #cbd5e1; ${selLvl === 2 ? 'background:#dbeafe; font-weight:bold; border:2px solid #2563eb;' : ''}">
+              ${selLvl === 2 ? '✓ ' : ''}${item.l2}
+            </td>
+            <td style="padding: 8px; border-right: 1px solid #cbd5e1; ${selLvl === 3 ? 'background:#dbeafe; font-weight:bold; border:2px solid #2563eb;' : ''}">
+              ${selLvl === 3 ? '✓ ' : ''}${item.l3}
+            </td>
+            <td style="padding: 8px; ${selLvl === 4 ? 'background:#dbeafe; font-weight:bold; border:2px solid #2563eb;' : ''}">
+              ${selLvl === 4 ? '✓ ' : ''}${item.l4}
+            </td>
+          </tr>
+        `;
+      });
+
+      const printHtml = `
+        <div style="font-family: -apple-system, sans-serif; color: #0f172a; max-width: 900px; margin: 0 auto; padding: 25px;">
+          <div style="border-bottom: 2.5px solid #1e40af; padding-bottom: 10px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:flex-end;">
+            <div>
+              <h2 style="margin: 0; color: #1e40af; font-size: 1.5rem;">Lab Report Evaluation Rubric</h2>
+              <h4 style="margin: 3px 0 0 0; color: #64748b;">Grade 8 Science &amp; Technology — Class ${currentClassKey.toUpperCase()}</h4>
+            </div>
+            <div style="text-align: right;">
+              <h3 style="margin: 0; font-size: 1.25rem;">${st.name}</h3>
+              <span style="font-size: 0.8rem; color: #64748b;">Date: ${new Date().toLocaleDateString('en-CA')}</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-bottom: 15px; background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 12px; border-radius: 8px;">
+            <div style="flex: 1; text-align: center;">
+              <span style="font-size: 0.72rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Total Score</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: #1e40af;">${totalScore} / 20</div>
+            </div>
+            <div style="flex: 1; text-align: center; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1;">
+              <span style="font-size: 0.72rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Percentage</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: #0f172a;">${pct.toFixed(1)}%</div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+              <span style="font-size: 0.72rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Ontario Achievement Level</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: #15803d;">Level ${ontLvl}</div>
+            </div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 15px;">
+            <thead>
+              <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                <th style="padding: 8px; width: 20%; border: 1px solid #cbd5e1;">Evaluation Criteria</th>
+                <th style="padding: 8px; width: 20%; border: 1px solid #cbd5e1;">Level 1</th>
+                <th style="padding: 8px; width: 20%; border: 1px solid #cbd5e1;">Level 2</th>
+                <th style="padding: 8px; width: 20%; border: 1px solid #cbd5e1;">Level 3</th>
+                <th style="padding: 8px; width: 20%; border: 1px solid #cbd5e1;">Level 4</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRowsHtml}
+            </tbody>
+          </table>
+
+          <div style="margin-top: 20px; border-top: 1px solid #cbd5e1; padding-top: 15px;">
+            <b style="font-size: 0.8rem; color: #475569; display:block; margin-bottom: 6px;">TEACHER FEEDBACK &amp; NEXT STEPS:</b>
+            <div style="height: 60px; border: 1px dashed #94a3b8; border-radius: 6px; padding: 8px; font-size: 0.8rem; color: #334155;">
+              ${getAssignmentNote(st.notes, 'Lab Report #1') || 'Strong effort demonstrated on experimental design and scientific formatting.'}
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; margin-top: 30px; font-size:0.8rem; color:#64748b;">
+            <span>Teacher Signature: _________________________</span>
+            <span>Parent/Guardian Signature: _________________________</span>
+          </div>
+        </div>
+      `;
+
+      const printArea = document.getElementById('printableReportArea');
+      printArea.innerHTML = printHtml;
+      printArea.style.display = 'block';
+      window.print();
+      printArea.style.display = 'none';
     }
 
     /* In-Cell Trajectory Sparkline Generator */
@@ -2379,7 +2522,7 @@
       if (posInput !== null && posInput.trim() !== '') {
         const parsed = parseInt(posInput.trim(), 10);
         if (!isNaN(parsed) && parsed >= 1) {
-          insertIdx = Math.min(Math.max(parsed - 1, 0), activeColumns.length);
+          insertIdx = Math.min(Math.max(parsed - 1, 0), activeStudents.length);
         }
       }
 
