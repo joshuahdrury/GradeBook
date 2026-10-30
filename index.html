@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Teacher Gradebook - Success, Trends & Learning Skills</title>
+  <title>Teacher Gradebook - Ontario Growing Success, Trends & Rubrics</title>
 
   <!-- Instant Mobile Detection & Redirection -->
   <script>
@@ -177,7 +177,6 @@
       display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 135px;
     }
 
-    /* Small copy button for summary headers */
     .btn-header-copy {
       background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px;
       font-size: 0.65rem; font-weight: 700; color: #475569; padding: 2px 5px;
@@ -186,6 +185,12 @@
     }
     .btn-header-copy:hover { background: #f1f5f9; border-color: #94a3b8; color: #1e293b; }
     .btn-header-copy.copied { background: #dcfce7; border-color: #86efac; color: #15803d; }
+
+    .btn-rubric-trigger {
+      background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.68rem;
+      font-weight: 700; border-radius: 4px; padding: 1px 4px; cursor: pointer;
+    }
+    .btn-rubric-trigger:hover { background: #dbeafe; }
 
     /* In-cell Sparkline & Trajectory Styling */
     .sparkline-wrapper {
@@ -284,6 +289,7 @@
     }
     .mark-cell-wrapper:hover .note-tooltip { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(-2px); }
 
+    /* Modals */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px);
@@ -296,6 +302,10 @@
     .modal-card-large {
       background: #ffffff; border-radius: 14px; max-width: 860px; width: 95%; max-height: 90vh;
       overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3); animation: popIn 0.18s ease-out;
+    }
+    .modal-card-rubric {
+      background: #ffffff; border-radius: 14px; max-width: 950px; width: 96%; max-height: 90vh;
+      overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); animation: popIn 0.18s ease-out;
     }
     @keyframes popIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -323,6 +333,26 @@
     }
     .comment-text {
       font-size: 0.825rem; line-height: 1.45; color: #14532d; font-style: italic; margin-bottom: 0.5rem;
+    }
+
+    /* Rubric Table Interactive Styling */
+    .rubric-table {
+      width: 100%; border-collapse: collapse; font-size: 0.8rem;
+    }
+    .rubric-table th {
+      background: #f1f5f9; border: 1px solid var(--border); padding: 8px 10px; font-weight: 700; text-align: center;
+    }
+    .rubric-table td {
+      border: 1px solid var(--border); padding: 8px 10px; vertical-align: top;
+    }
+    .rubric-cell-selectable {
+      cursor: pointer; transition: all 0.15s ease; border-radius: 4px;
+    }
+    .rubric-cell-selectable:hover {
+      background: #e0f2fe !important;
+    }
+    .rubric-selected {
+      background: #dbeafe !important; border: 2px solid #2563eb !important; font-weight: 700;
     }
 
     .analytics-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1rem; }
@@ -374,7 +404,7 @@
     <header>
       <div>
         <h1>GradeBook Input & Weighting Portal</h1>
-        <p class="subtitle">Ontario Curriculum Expectations, KICA Category Levels, Learning Skills & Growth Trajectories.</p>
+        <p class="subtitle">Ontario Curriculum Expectations, KICA Category Levels, Learning Skills & Interactive Rubrics.</p>
       </div>
       <div class="toolbar">
         <label for="classSelect" style="font-size: 0.825rem; font-weight: 600;">Class:</label>
@@ -455,8 +485,51 @@
           </span>
         </div>
         <span style="color: var(--text-muted);">
-          <b>Trajectories:</b> ↗ Growth | → Steady | ↘ Intervention Needed | <b>Click sparkline</b> to see score progression
+          <b>Grade 8 Feature:</b> Click <b>📑 Rubric</b> on Lab Report #1 to grade using the interactive rubric
         </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Rubric Modal -->
+  <div id="rubricModal" class="modal-overlay" onclick="handleRubricBackdrop(event)">
+    <div class="modal-card-rubric">
+      <div class="modal-header">
+        <div>
+          <h3 style="color:#1e40af;">Scientific Presentation &amp; Lab Rubric</h3>
+          <span id="rubricStudentTarget" style="font-size:0.85rem; font-weight:700; color:#475569;">Target: Student</span>
+        </div>
+        <button class="btn-close-modal" onclick="closeRubricModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px 12px; border-radius:8px; border:1px solid var(--border);">
+          <div>
+            <label style="font-size:0.8rem; font-weight:700; margin-right:6px;">Select Student:</label>
+            <select id="rubricStudentSelect" onchange="loadStudentRubric(this.value)" style="font-size:0.825rem; padding:3px 6px;"></select>
+          </div>
+          <div>
+            <span>Calculated Score: <b id="rubricScoreDisplay" style="font-size:1.1rem; color:#1e40af;">- / 20</b></span>
+            <span style="margin-left:12px;">Level: <b id="rubricLevelDisplay" style="font-size:1.1rem; color:#15803d;">-</b></span>
+          </div>
+        </div>
+
+        <table class="rubric-table">
+          <thead>
+            <tr>
+              <th style="width:18%;">Criteria</th>
+              <th style="width:20.5%;">Level 1 (50-59%)</th>
+              <th style="width:20.5%;">Level 2 (60-69%)</th>
+              <th style="width:20.5%;">Level 3 (70-79%)</th>
+              <th style="width:20.5%;">Level 4 (80-100%)</th>
+            </tr>
+          </thead>
+          <tbody id="rubricTableBody"></tbody>
+        </table>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:0.5rem;">
+          <button onclick="closeRubricModal()" style="padding:6px 12px; font-weight:600;">Cancel</button>
+          <button onclick="applyRubricGrade()" class="btn-primary" style="padding:6px 16px; font-weight:700;">Apply &amp; Insert Grade</button>
+        </div>
       </div>
     </div>
   </div>
@@ -536,7 +609,6 @@
         <button class="btn-close-modal" onclick="closeAnalyticsModal()">&times;</button>
       </div>
       <div class="modal-body">
-        
         <div class="chart-box">
           <div class="chart-title">
             <span>Assignment Performance Distribution</span>
@@ -545,7 +617,6 @@
               <select id="analyticsAssignmentSelect" onchange="renderAssignmentChart(this.value)" style="padding:2px 6px; font-size:0.8rem;"></select>
             </div>
           </div>
-
           <div class="stat-ribbon" id="assignmentStatRibbon"></div>
           <div class="histo-container" id="assignmentHistoBars"></div>
         </div>
@@ -564,7 +635,6 @@
             </p>
           </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -620,6 +690,48 @@
       { key: 'I', label: 'Initiative' },
       { key: 'S', label: 'Self-Regulation' }
     ];
+
+    // Rubric Definition directly extracted from user document
+    const RUBRIC_DATA = [
+      {
+        criterion: "Clarity",
+        l1: "Information is unclear or incomplete",
+        l2: "Some ideas clear; organization needs work",
+        l3: "Most info is clear and well organized",
+        l4: "Very clear, well-organized; easy to follow"
+      },
+      {
+        criterion: "Scientific Content",
+        l1: "Limited understanding of science concepts",
+        l2: "Some accurate content; some gaps",
+        l3: "Accurate and mostly complete",
+        l4: "Deep understanding and accurate throughout"
+      },
+      {
+        criterion: "Visuals",
+        l1: "Few or unclear visuals",
+        l2: "Some visuals, partially labeled",
+        l3: "Relevant visuals used and labeled",
+        l4: "Excellent, well-integrated visuals"
+      },
+      {
+        criterion: "Language Use",
+        l1: "Rare use of scientific terms",
+        l2: "Some science vocabulary used correctly",
+        l3: "Uses correct scientific language",
+        l4: "Precise and confident use of science terms"
+      },
+      {
+        criterion: "Format & Structure",
+        l1: "Poor structure, unorganized, missing required sections",
+        l2: "Basic structure; formatting is inconsistent or needs neatness",
+        l3: "Well-structured, neat formatting, clear sections throughout",
+        l4: "Exceptionally well-structured, professional formatting and layout"
+      }
+    ];
+
+    let activeRubricStudentIdx = null;
+    let rubricSelections = { 0: 3, 1: 3, 2: 3, 3: 3, 4: 3 }; // default L3s
 
     function getLetterGrade(pct) {
       if (pct >= 95) return 'A';
@@ -695,7 +807,7 @@
 
     const SCI_8_COLS = [
       { name: "Variable Check-in", max: 10, weight: 10, category: "T", expectation: "scientific inquiry and variable control" },
-      { name: "Lab Report #1", max: 20, weight: 15, category: "C", expectation: "documenting experimental lab observations" },
+      { name: "Lab Report #1", max: 20, weight: 15, category: "C", expectation: "scientific presentation, formatting and experimental analysis" },
       { name: "Microscope Quiz", max: 30, weight: 15, category: "K", expectation: "identifying plant and animal cellular components" },
       { name: "Unit 2 Test", max: 39, weight: 20, category: "K", expectation: "cellular biology and organ systems" },
       { name: "Cell Model", max: 16, weight: 10, category: "A", expectation: "constructing three-dimensional representations of cellular organelles" },
@@ -761,11 +873,11 @@
       '8av': {
         columns: SCI_8_COLS,
         students: [
-          { name: "Applebaum; Parker", marks: ["9", "18", "27", "35", "15", "46", "11"] },
-          { name: "Bacal; Catherine", marks: ["10", "19", "28", "37", "16", "48", "12"] },
-          { name: "Ball; Hudson", marks: ["8", "16", "24", "31", "13", "40", "10"] },
-          { name: "Baruch; Max", marks: ["9.5", "17", "26", "34", "14", "44", "11"] },
-          { name: "Cole; Noah", marks: ["9", "18", "26", "35", "15", "45", "11"] },
+          { name: "Applebaum; Parker", marks: ["9", "18", "27", "35", "15", "46", "11"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Bacal; Catherine", marks: ["10", "19", "28", "37", "16", "48", "12"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Ball; Hudson", marks: ["8", "16", "24", "31", "13", "40", "10"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
+          { name: "Baruch; Max", marks: ["9.5", "17", "26", "34", "14", "44", "11"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'G', S:'E' } },
+          { name: "Cole; Noah", marks: ["9", "18", "26", "35", "15", "45", "11"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
           "Finkelstein; William", "Grinstein; Riley", "Grossman; Cameron", "Katz; Jack", "Kraft; Hyla", "Leibson; Liya", "Levy Dror; Amielle", "Margau; Kayla", "Moskowitz; Zoe", "Ostro; Avery", "Pilarski; Jayme", "Reidiboim; Samantha", "Sacks; Cole", "Shahak-Broder; Alma", "Singer; Radley", "Weintraub; Nediva"
         ]
       },
@@ -777,7 +889,7 @@
       '8ch': { columns: MATH_COLS, students: ["Student X", "Student Y", "Student Z"] }
     };
 
-    let currentClassKey = localStorage.getItem('last_active_class') || '7av';
+    let currentClassKey = localStorage.getItem('last_active_class') || '8av';
     let activeColumns = [];
     let activeStudents = [];
     let saveTimeout = null;
@@ -795,6 +907,7 @@
       if (e.key === 'Escape') {
         closeStudentModal();
         closeAnalyticsModal();
+        closeRubricModal();
       }
     });
 
@@ -987,10 +1100,6 @@
         const bracketMatch = rawHeader.match(/\[([KTCA])\]/i);
         if (bracketMatch) {
           category = bracketMatch[1].toUpperCase();
-        } else {
-          if (colTitle.toLowerCase().includes('(t)') || colTitle.toLowerCase().includes('inquiry') || colTitle.toLowerCase().includes('quiz') || colTitle.toLowerCase().includes('project')) category = 'T';
-          if (colTitle.toLowerCase().includes('(c)') || colTitle.toLowerCase().includes('report') || colTitle.toLowerCase().includes('function')) category = 'C';
-          if (colTitle.toLowerCase().includes('(a)') || colTitle.toLowerCase().includes('model') || colTitle.toLowerCase().includes('mix') || colTitle.toLowerCase().includes('impact')) category = 'A';
         }
 
         let expectation = '';
@@ -1046,6 +1155,9 @@
         const badgeClass = `badge-${cat.toLowerCase()}`;
         const expVal = col.expectation || '';
 
+        // Check if this is the Grade 8 Lab Report column (Col 2 or name match)
+        const isLabReportCol = col.name.toLowerCase().includes('lab report') || (idx === 1 && currentClassKey.startsWith('8'));
+
         hHtml += `<th>
           <div class="header-cell-stack">
             <div style="display:flex; align-items:center; gap:3px; width:100%;">
@@ -1062,6 +1174,7 @@
               title="Curriculum expectation or skill assessed"
               onchange="activeColumns[${idx}].expectation = this.value; triggerAutoSave();" />
             <div class="col-actions">
+              ${isLabReportCol ? `<button class="btn-rubric-trigger" onclick="openRubricModal(0)">📑 Rubric</button>` : ''}
               <button class="btn-col-action" title="Paste column from Google Classroom" onclick="promptPasteColumn(${idx})">📋 Paste</button>
               <button class="btn-col-action" title="Clear marks in column" onclick="clearColumn(${idx})">🧹 Clear</button>
               <button class="btn-col-action" title="Delete column" onclick="removeColumn(${idx})">🗑️ Delete</button>
@@ -1176,11 +1289,12 @@
         const val = student.marks[cIdx] !== undefined ? student.marks[cIdx] : '';
         const assignmentNote = getAssignmentNote(student.notes, col.name);
         const hasNoteClass = assignmentNote ? 'has-note' : '';
+        const isLabCol = col.name.toLowerCase().includes('lab report') || (cIdx === 1 && currentClassKey.startsWith('8'));
 
         html += `<td>
           <div class="mark-cell-wrapper ${hasNoteClass}" 
-               oncontextmenu="promptAssignmentNote(event, ${sIdx}, ${cIdx})"
-               title="${assignmentNote ? '' : 'Right-click to attach note'}">
+               oncontextmenu="handleMarkRightClick(event, ${sIdx}, ${cIdx})"
+               title="${assignmentNote ? '' : (isLabCol ? 'Right-click for Rubric or Note' : 'Right-click to attach note')}">
             <input class="cell-input mark-cell" 
               data-row="${sIdx}" 
               data-col="${cIdx}" 
@@ -1212,6 +1326,21 @@
         </td>
       `;
       return html;
+    }
+
+    function handleMarkRightClick(e, sIdx, cIdx) {
+      e.preventDefault();
+      const col = activeColumns[cIdx];
+      const isLabCol = col.name.toLowerCase().includes('lab report') || (cIdx === 1 && currentClassKey.startsWith('8'));
+
+      if (isLabCol) {
+        const choice = confirm(`Would you like to open the interactive rubric for ${activeStudents[sIdx].name}?\n\nClick "OK" for Rubric, or "Cancel" to edit notes.`);
+        if (choice) {
+          openRubricModal(sIdx);
+          return;
+        }
+      }
+      promptAssignmentNote(e, sIdx, cIdx);
     }
 
     /* Learning Skills Panel Logic */
@@ -1268,6 +1397,130 @@
       triggerAutoSave();
     }
 
+    /* Interactive Rubric Functions */
+    function openRubricModal(sIdx) {
+      activeRubricStudentIdx = sIdx !== undefined ? sIdx : 0;
+      const modal = document.getElementById('rubricModal');
+
+      // Populate student selector
+      const select = document.getElementById('rubricStudentSelect');
+      select.innerHTML = '';
+      activeStudents.forEach((st, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = st.name;
+        if (i === activeRubricStudentIdx) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      loadStudentRubric(activeRubricStudentIdx);
+      modal.style.display = 'flex';
+    }
+
+    function closeRubricModal() {
+      document.getElementById('rubricModal').style.display = 'none';
+    }
+
+    function handleRubricBackdrop(e) {
+      if (e.target.id === 'rubricModal') closeRubricModal();
+    }
+
+    function loadStudentRubric(sIdx) {
+      activeRubricStudentIdx = parseInt(sIdx, 10);
+      const st = activeStudents[activeRubricStudentIdx];
+      document.getElementById('rubricStudentTarget').textContent = `Target: ${st.name} — Class ${currentClassKey.toUpperCase()}`;
+
+      // Try to parse existing score to default selections
+      const labMark = parseFloat(st.marks[1] || '16');
+      let defaultLvl = 3;
+      if (labMark >= 18) defaultLvl = 4;
+      else if (labMark >= 15) defaultLvl = 3;
+      else if (labMark >= 13) defaultLvl = 2;
+      else defaultLvl = 1;
+
+      rubricSelections = { 0: defaultLvl, 1: defaultLvl, 2: defaultLvl, 3: defaultLvl, 4: defaultLvl };
+
+      renderRubricTable();
+      updateRubricScoreDisplay();
+    }
+
+    function renderRubricTable() {
+      const tbody = document.getElementById('rubricTableBody');
+      tbody.innerHTML = '';
+
+      RUBRIC_DATA.forEach((item, rIdx) => {
+        const tr = document.createElement('tr');
+        const selectedLvl = rubricSelections[rIdx];
+
+        tr.innerHTML = `
+          <td style="font-weight:700; background:#f8fafc;">${item.criterion}</td>
+          <td class="rubric-cell-selectable ${selectedLvl === 1 ? 'rubric-selected' : ''}" onclick="selectRubricLevel(${rIdx}, 1)">
+            ${item.l1}
+          </td>
+          <td class="rubric-cell-selectable ${selectedLvl === 2 ? 'rubric-selected' : ''}" onclick="selectRubricLevel(${rIdx}, 2)">
+            ${item.l2}
+          </td>
+          <td class="rubric-cell-selectable ${selectedLvl === 3 ? 'rubric-selected' : ''}" onclick="selectRubricLevel(${rIdx}, 3)">
+            ${item.l3}
+          </td>
+          <td class="rubric-cell-selectable ${selectedLvl === 4 ? 'rubric-selected' : ''}" onclick="selectRubricLevel(${rIdx}, 4)">
+            ${item.l4}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function selectRubricLevel(criterionIdx, level) {
+      rubricSelections[criterionIdx] = level;
+      renderRubricTable();
+      updateRubricScoreDisplay();
+    }
+
+    function updateRubricScoreDisplay() {
+      let totalLevels = 0;
+      for (let i = 0; i < 5; i++) {
+        totalLevels += (rubricSelections[i] || 3);
+      }
+      // 5 criteria, maximum 20 points (e.g. 5 x 4 = 20)
+      const calculatedScore = totalLevels; 
+      const pct = (calculatedScore / 20) * 100;
+      const ontLvl = getOntarioLevel(pct);
+
+      document.getElementById('rubricScoreDisplay').textContent = `${calculatedScore} / 20 (${pct.toFixed(0)}%)`;
+      document.getElementById('rubricLevelDisplay').textContent = `Level ${ontLvl}`;
+    }
+
+    function applyRubricGrade() {
+      if (activeRubricStudentIdx === null) return;
+      let totalLevels = 0;
+      let summaryParts = [];
+      for (let i = 0; i < 5; i++) {
+        const lvl = rubricSelections[i] || 3;
+        totalLevels += lvl;
+        summaryParts.push(`${RUBRIC_DATA[i].criterion}: L${lvl}`);
+      }
+
+      const st = activeStudents[activeRubricStudentIdx];
+      // Insert score into Lab Report #1 column (index 1)
+      st.marks[1] = totalLevels.toString();
+
+      // Append rubric evidence to student note
+      const rubricNote = `Lab Report #1 (${summaryParts.join(', ')})`;
+      let curNotes = st.notes || '';
+      if (!curNotes.includes('Lab Report #1')) {
+        curNotes = curNotes ? `${curNotes}; ${rubricNote}` : rubricNote;
+      } else {
+        curNotes = curNotes.replace(/Lab Report #1\s*:[^;|\n]*/i, rubricNote);
+      }
+      st.notes = curNotes;
+
+      renderTable();
+      triggerAutoSave();
+      closeRubricModal();
+      alert(`Applied score of ${totalLevels}/20 to ${st.name} for Lab Report #1!`);
+    }
+
     /* In-Cell Trajectory Sparkline Generator */
     function generateInlineSparkline(percentages) {
       if (!percentages || percentages.length < 2) return '';
@@ -1282,19 +1535,18 @@
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       }).join(' ');
 
-      // Slope trajectory calculation
       const first = percentages[0];
       const last = percentages[percentages.length - 1];
       const diff = last - first;
 
-      let strokeColor = '#0284c7'; // default blue
+      let strokeColor = '#0284c7';
       let badgeHtml = `<span class="trend-badge trend-neutral" title="Steady trend (Δ ${diff.toFixed(0)}%)">→</span>`;
 
       if (diff >= 5) {
-        strokeColor = '#16a34a'; // green
+        strokeColor = '#16a34a';
         badgeHtml = `<span class="trend-badge trend-up" title="Upward trajectory (+${diff.toFixed(0)}%)">↗</span>`;
       } else if (diff <= -5) {
-        strokeColor = '#dc2626'; // red/amber
+        strokeColor = '#dc2626';
         badgeHtml = `<span class="trend-badge trend-down" title="Downward intervention needed (${diff.toFixed(0)}%)">↘</span>`;
       }
 
@@ -1418,7 +1670,6 @@
       return "Science & Technology";
     }
 
-    // Growing Success Comment Generator with integrated Learning Skills
     function generateGrowingSuccessComment(sIdx) {
       const st = activeStudents[sIdx];
       const firstName = getFirstName(st.name);
@@ -1454,7 +1705,6 @@
 
       let comment = `${firstName} has demonstrated a ${qualifier} understanding of ${strengthExpectation}, which was evident in their work on the ${strengthTask}.`;
 
-      // Next steps / Academic growth
       if (lowestItem && lowestItem !== bestItem) {
         let focusExpectation = lowestItem.expectation && lowestItem.expectation.trim() !== ''
           ? `strengthen skills in ${lowestItem.expectation.trim()}`
@@ -1465,7 +1715,6 @@
         comment += ` Moving forward, we will encourage ${firstName} to continue applying these concepts toward extended, independent inquiry tasks.`;
       }
 
-      // Learning Skills narrative synthesis
       if (st.ls) {
         let bestLs = [], growthLs = [];
         LS_SKILLS.forEach(skill => {
@@ -1545,7 +1794,6 @@
       }).join(' · ');
       document.getElementById('modalKicaSummary').innerText = catDisplay;
 
-      // Learning Skills string
       const lsSummary = st.ls ? LS_SKILLS.map(s => `${s.key}:${st.ls[s.key] || '-'}`).join(' · ') : 'None evaluated';
       document.getElementById('modalLsSummary').innerText = lsSummary;
 
@@ -1608,7 +1856,6 @@
         `;
       });
 
-      // Learning Skills badges for print
       const lsHtml = LS_SKILLS.map(s => {
         const val = st.ls ? (st.ls[s.key] || '-') : '-';
         return `
@@ -2030,7 +2277,6 @@
         const cCell = document.getElementById(`c-level-${sIdx}`);
         const aCell = document.getElementById(`a-level-${sIdx}`);
 
-        // In-cell Sparkline & Trajectory computation
         const sparklineHtml = generateInlineSparkline(studentPercentages);
 
         if (appliedWeight > 0) {
