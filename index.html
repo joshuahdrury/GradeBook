@@ -897,58 +897,59 @@
       { name: "Check-in", max: 10, weight: 20, category: "C", expectation: "clarity in written and visual explanations" }
     ];
 
+    // Student Rosters showing ONLY first names
     const DEFAULT_CLASSES = {
-      '6av': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
-      '6bv': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
-      '6cv': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
-      '6dv': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
-      '6ah': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
-      '6bh': { columns: GENERIC_6_COLS, students: ["Sample Student 1", "Sample Student 2", "Sample Student 3"] },
-      '6ch': { columns: GENERIC_6_COLS, students: ["Sample Student A", "Sample Student B", "Sample Student C"] },
+      '6av': { columns: GENERIC_6_COLS, students: ["Student 1", "Student 2", "Student 3"] },
+      '6bv': { columns: GENERIC_6_COLS, students: ["Student 1", "Student 2", "Student 3"] },
+      '6cv': { columns: GENERIC_6_COLS, students: ["Student 1", "Student 2", "Student 3"] },
+      '6dv': { columns: GENERIC_6_COLS, students: ["Student 1", "Student 2", "Student 3"] },
+      '6ah': { columns: GENERIC_6_COLS, students: ["Student 1", "Student 2", "Student 3"] },
+      '6bh': { columns: GENERIC_6_COLS, students: ["Student 1", "Student 2", "Student 3"] },
+      '6ch': { columns: GENERIC_6_COLS, students: ["Student A", "Student B", "Student C"] },
       '7av': {
         columns: SCI_7_COLS,
         students: [
-          { name: "Alter; Jayden", marks: ["15", "4", "15", "4", "3", "28", "14", "15", "15", "56", "19", "18"], ls: { R:'E', O:'E', IN:'G', C:'E', I:'G', S:'E' } },
-          { name: "Aronovici; Bradley", marks: ["15", "3", "12.5", "3+", "3+", "25", "13", "14", "14", "50", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'S', I:'G', S:'G' } },
-          { name: "Bockner; Spencer", marks: ["15", "4", "14", "3+", "3", "27", "14", "14.5", "15", "52", "18", "18"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'E', S:'G' } },
-          { name: "Bratt; Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'G', S:'E' } },
-          { name: "Gal; Itay", marks: ["9", "3", "9", "3+/4-", "3", "20", "11", "12", "12", "42", "14", "13"], ls: { R:'S', O:'S', IN:'S', C:'G', I:'S', S:'S' } },
-          { name: "Gerwitz; Olivia", marks: ["15", "3", "13.5", "3", "4/4-", "27", "13", "14", "15", "51", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'E', I:'G', S:'G' } },
-          { name: "Goldenberg; Oliver", marks: ["15", "3", "14", "4", "3", "26", "14", "14", "14", "53", "17", "17"], ls: { R:'E', O:'G', IN:'E', C:'G', I:'E', S:'G' } },
-          { name: "Goodman; Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"], ls: { R:'G', O:'S', IN:'G', C:'G', I:'S', S:'G' } },
-          { name: "Inspektor; Lev", marks: ["15", "4", "15", "3+/4-", "3+", "28", "14", "15", "15", "55", "19", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
-          { name: "Katz; Graycie", marks: ["14", "3", "14", "3", "3+", "25", "13", "14", "14", "49", "16", "16"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
-          { name: "Kaufman; Matthew", marks: ["15", "4", "12", "3", "3+", "26", "13.5", "14", "14", "50", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'E', I:'G', S:'G' } },
-          { name: "Kerekes; Addison", marks: ["15", "4", "15", "3+", "4", "29", "15", "15", "15", "58", "20", "19"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
-          { name: "Libin; Warren", marks: ["14", "4", "15", "3", "3-", "25", "13", "13.5", "14", "48", "16", "15"], ls: { R:'G', O:'S', IN:'G', C:'G', I:'S', S:'S' } },
-          { name: "Moxley; Scarlet", marks: ["14", "2", "13.5", "3+/4-", "3", "24", "12.5", "13", "13", "47", "15", "15"], ls: { R:'G', O:'G', IN:'S', C:'G', I:'G', S:'G' } },
-          { name: "Rothschild; Elle", marks: ["15", "4", "15", "4", "4-", "30", "15", "15.5", "16", "57", "19", "19"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
-          { name: "Ungar; Yanai", marks: ["12", "4", "15", "3+/4-", "3", "26", "13", "14", "14", "50", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
-          { name: "Valo; Judah", marks: ["15", "4", "15", "3+/4-", "3", "27", "14", "14", "15", "52", "18", "17"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'G', S:'E' } },
-          { name: "Wasserman; Zachary", marks: ["14", "4", "14.5", "3+", "4", "28", "14", "15", "15", "55", "18", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
-          { name: "Weinerman; Eli", marks: ["15", "2", "10", "4/4-", "4-", "27", "13.5", "14", "14", "51", "17", "17"], ls: { R:'G', O:'S', IN:'G', C:'S', I:'S', S:'S' } },
-          { name: "Zifkin; Lily", marks: ["15", "4", "15", "4/4-", "3+", "28", "14.5", "15", "15", "54", "18", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } }
+          { name: "Jayden", marks: ["15", "4", "15", "4", "3", "28", "14", "15", "15", "56", "19", "18"], ls: { R:'E', O:'E', IN:'G', C:'E', I:'G', S:'E' } },
+          { name: "Bradley", marks: ["15", "3", "12.5", "3+", "3+", "25", "13", "14", "14", "50", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'S', I:'G', S:'G' } },
+          { name: "Spencer", marks: ["15", "4", "14", "3+", "3", "27", "14", "14.5", "15", "52", "18", "18"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'E', S:'G' } },
+          { name: "Gabrielle", marks: ["15", "4", "15", "3", "3", "26", "13.5", "15", "14", "54", "18", "17"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'G', S:'E' } },
+          { name: "Itay", marks: ["9", "3", "9", "3+/4-", "3", "20", "11", "12", "12", "42", "14", "13"], ls: { R:'S', O:'S', IN:'S', C:'G', I:'S', S:'S' } },
+          { name: "Olivia", marks: ["15", "3", "13.5", "3", "4/4-", "27", "13", "14", "15", "51", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'E', I:'G', S:'G' } },
+          { name: "Oliver", marks: ["15", "3", "14", "4", "3", "26", "14", "14", "14", "53", "17", "17"], ls: { R:'E', O:'G', IN:'E', C:'G', I:'E', S:'G' } },
+          { name: "Charlie", marks: ["14", "3", "11", "3+/4-", "3", "24", "12", "13", "13", "48", "16", "15"], ls: { R:'G', O:'S', IN:'G', C:'G', I:'S', S:'G' } },
+          { name: "Lev", marks: ["15", "4", "15", "3+/4-", "3+", "28", "14", "15", "15", "55", "19", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Graycie", marks: ["14", "3", "14", "3", "3+", "25", "13", "14", "14", "49", "16", "16"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
+          { name: "Matthew", marks: ["15", "4", "12", "3", "3+", "26", "13.5", "14", "14", "50", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'E', I:'G', S:'G' } },
+          { name: "Addison", marks: ["15", "4", "15", "3+", "4", "29", "15", "15", "15", "58", "20", "19"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Warren", marks: ["14", "4", "15", "3", "3-", "25", "13", "13.5", "14", "48", "16", "15"], ls: { R:'G', O:'S', IN:'G', C:'G', I:'S', S:'S' } },
+          { name: "Scarlet", marks: ["14", "2", "13.5", "3+/4-", "3", "24", "12.5", "13", "13", "47", "15", "15"], ls: { R:'G', O:'G', IN:'S', C:'G', I:'G', S:'G' } },
+          { name: "Elle", marks: ["15", "4", "15", "4", "4-", "30", "15", "15.5", "16", "57", "19", "19"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Yanai", marks: ["12", "4", "15", "3+/4-", "3", "26", "13", "14", "14", "50", "17", "16"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
+          { name: "Judah", marks: ["15", "4", "15", "3+/4-", "3", "27", "14", "14", "15", "52", "18", "17"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'G', S:'E' } },
+          { name: "Zachary", marks: ["14", "4", "14.5", "3+", "4", "28", "14", "15", "15", "55", "18", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Eli", marks: ["15", "2", "10", "4/4-", "4-", "27", "13.5", "14", "14", "51", "17", "17"], ls: { R:'G', O:'S', IN:'G', C:'S', I:'S', S:'S' } },
+          { name: "Lily", marks: ["15", "4", "15", "4/4-", "3+", "28", "14.5", "15", "15", "54", "18", "18"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } }
         ]
       },
-      '7bv': { columns: SCI_7_COLS, students: ["Alter; Marlowe", "Balboul; Ryan", "Binder; Abby", "Borer; Maya", "Cherun; Ellie", "Fonn; Jared", "Gerwitz; Brody", "Halbrich; Lia", "Katz; Austin", "Kremer; Erez", "Kroft; Chelsea", "Majerovits; Logan", "Naiberg; Sienna", "Reiter; Maxim", "Rubenstein; Leif", "Rubinoff; Avery", "Scholl; Maxwell", "Tropepe; Noah", "Vilner; Charlie"] },
-      '7cv': { columns: SCI_7_COLS, students: ["Binder; Ella", "Carman; Benjamin", "Fine; Theo", "Goldenberg; Justin", "Goldenberg; Leo", "Hartmann; Jonah", "Hershorn; Joseph", "Herzig; Willow", "Hirsh; Emma", "Leibowitz; Joshua", "Lepofsky; Jonah", "Levy; Atai", "Orzech; Madison", "Rosen; Jake", "Schneiderman; Yale", "Schwartz; Olivia", "Selbo; Ariel", "Tkatch; Hannah", "Unruch; Sam", "Wagman; Ryan"] },
-      '7dv': { columns: SCI_7_COLS, students: ["Burger; Shael", "Burko; Sydney", "Cohen; Zev", "Czutrin; Mark", "Dalgorf; Blake", "Eisen; Riley", "Finkelstein; Charles", "Goldhar; Jack", "Goodman; Jack", "Goren-Poole; Sarah", "Gozlan; Dylan", "Greenspoon; Samantha", "Hurwen; Noah", "Kuretzky; Everleigh", "Manna; Gabi", "Ostro; Hayden", "Reiff; Adelaide", "Shiff; Samuel", "Slama; Leo", "Staviss; Gabriel"] },
-      '7ah': { columns: MATH_COLS, students: ["Adelstein; Ryann", "Bergson; Joel", "Bockner; Hanna", "Cash; Henry", "Cohen; Micah", "Dalgorf; Ethan", "Detsky; Aryeh", "Dubin; Emma", "Kellerstein; Eden", "Ksantini-Deckel; Gaya", "Lanys; Ari", "Lieberman; Blake", "Luques; Ayala", "Margau; Madison", "Matlin; Tyler", "Perry; Liam", "Rosenthal; Brody", "Rotzang; Michael", "Selby; Cooper", "Silber; Olivia", "Steinberg; Yossi", "Steinman; Eva", "Vilner; Madeline"] },
+      '7bv': { columns: SCI_7_COLS, students: ["Marlowe", "Ryan", "Abby", "Maya", "Ellie", "Jared", "Brody", "Lia", "Austin", "Erez", "Chelsea", "Logan", "Sienna", "Maxim", "Leif", "Avery", "Maxwell", "Noah", "Charlie"] },
+      '7cv': { columns: SCI_7_COLS, students: ["Ella", "Benjamin", "Theo", "Justin", "Leo", "Jonah", "Joseph", "Willow", "Emma", "Joshua", "Jonah", "Atai", "Madison", "Jake", "Yale", "Olivia", "Ariel", "Hannah", "Sam", "Ryan"] },
+      '7dv': { columns: SCI_7_COLS, students: ["Shael", "Sydney", "Zev", "Mark", "Blake", "Riley", "Charles", "Jack G.", "Jack M.", "Sarah", "Dylan", "Samantha", "Noah", "Everleigh", "Gabi", "Hayden", "Adelaide", "Samuel", "Leo", "Gabriel"] },
+      '7ah': { columns: MATH_COLS, students: ["Ryann", "Joel", "Hanna", "Henry", "Micah", "Ethan", "Aryeh", "Emma", "Eden", "Gaya", "Ari", "Blake", "Ayala", "Madison", "Tyler", "Liam", "Brody", "Michael", "Cooper", "Olivia", "Yossi", "Eva", "Madeline"] },
       '7bh': { columns: MATH_COLS, students: ["Student 1", "Student 2", "Student 3", "Student 4", "Student 5", "Student 6", "Student 7", "Student 8"] },
       '8av': {
         columns: SCI_8_COLS,
         students: [
-          { name: "Applebaum; Parker", marks: ["9", "18.5", "27", "35", "15", "46", "11"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
-          { name: "Bacal; Catherine", marks: ["10", "19", "28", "37", "16", "48", "12"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
-          { name: "Ball; Hudson", marks: ["8", "16", "24", "31", "13", "40", "10"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
-          { name: "Baruch; Max", marks: ["9.5", "17.5", "26", "34", "14", "44", "11"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'G', S:'E' } },
-          { name: "Cole; Noah", marks: ["9", "18", "26", "35", "15", "45", "11"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
-          "Finkelstein; William", "Grinstein; Riley", "Grossman; Cameron", "Katz; Jack", "Kraft; Hyla", "Leibson; Liya", "Levy Dror; Amielle", "Margau; Kayla", "Moskowitz; Zoe", "Ostro; Avery", "Pilarski; Jayme", "Reidiboim; Samantha", "Sacks; Cole", "Shahak-Broder; Alma", "Singer; Radley", "Weintraub; Nediva"
+          { name: "Parker", marks: ["9", "18.5", "27", "35", "15", "46", "11"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Catherine", marks: ["10", "19", "28", "37", "16", "48", "12"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          { name: "Hudson", marks: ["8", "16", "24", "31", "13", "40", "10"], ls: { R:'G', O:'G', IN:'G', C:'G', I:'G', S:'G' } },
+          { name: "Max B.", marks: ["9.5", "17.5", "26", "34", "14", "44", "11"], ls: { R:'E', O:'G', IN:'E', C:'E', I:'G', S:'E' } },
+          { name: "Noah", marks: ["9", "18", "26", "35", "15", "45", "11"], ls: { R:'E', O:'E', IN:'E', C:'E', I:'E', S:'E' } },
+          "William", "Riley", "Cameron", "Jack", "Hyla", "Liya", "Amielle", "Kayla", "Zoe", "Avery", "Jayme", "Samantha", "Cole", "Alma", "Radley", "Nediva"
         ]
       },
-      '8bv': { columns: SCI_8_COLS, students: ["Blum; Daphne", "Cayen; Marlowe", "Cherun; Aiden", "Chisick; Jacob", "Elfassy; Rayna", "Erlich; Blake", "Foster; Allie", "Glick; Reuben", "Gutman; Avianna", "Leonoff; Isabelle", "Levine; Aubrey", "Mandowsky; Isla", "Mann; Lyla", "Reidiboim; Damian", "Rezmovitz; Ezra", "Rozhnov; Olivia", "Silber; Naomi", "Silver; Alexa", "Smith; Samuel", "Wilkins; Spencer"] },
-      '8cv': { columns: SCI_8_COLS, students: ["Brass; Harper", "Closner; Quinn", "Cooperberg; Jordan", "Driman; Hudson", "Drucker; Benjamin", "Ellison; Bradley", "Freeman; Rachel", "Fryer; Hallie", "Goldstein; Alexander", "Gurau; Greyson", "Hason; Emily", "Katz; Max", "Lanel; Ella", "Lieberman; Noah", "Rabie; Aden", "Redlick; Julian", "Silber; Andrew", "Steen; Emily", "Steinman; Noa", "Vilner; Mackenzie", "Waugh; Emily"] },
-      '8dv': { columns: SCI_8_COLS, students: ["Emma Abramsohn", "Cohen; Brayden", "Detsky; Eliav", "Gleicher; Jamie", "Greenspoon; Mara", "Kushner; Shayna", "Matlin; Charlie", "Mazur; Esther", "Mocon; Lucy", "Moffs; Charlie", "Moxley; Sadie", "Perry; Danielle", "Rivietz; Harper", "Shahak-Broder; Noam", "Silber; Charlotte", "Silber; Talia", "Sussman; Max", "Tamir Weinberg; Yael", "Trager; Jenny", "Weinberg; Joshua", "Wolfe; Spencer"] },
+      '8bv': { columns: SCI_8_COLS, students: ["Daphne", "Marlowe", "Aiden", "Jacob", "Rayna", "Blake", "Allie", "Reuben", "Avianna", "Isabelle", "Aubrey", "Isla", "Lyla", "Damian", "Ezra", "Olivia", "Naomi", "Alexa", "Samuel", "Spencer"] },
+      '8cv': { columns: SCI_8_COLS, students: ["Harper", "Quinn", "Jordan", "Hudson", "Benjamin", "Bradley", "Rachel", "Hallie", "Alexander", "Greyson", "Emily H.", "Max", "Ella", "Noah", "Aden", "Julian", "Andrew", "Emily S.", "Noa", "Mackenzie", "Emily W."] },
+      '8dv': { columns: SCI_8_COLS, students: ["Emma", "Brayden", "Eliav", "Jamie", "Mara", "Shayna", "Charlie M.", "Esther", "Lucy", "Charlie F.", "Sadie", "Danielle", "Harper", "Noam", "Charlotte", "Talia", "Max", "Yael", "Jenny", "Joshua", "Spencer"] },
       '8ah': { columns: MATH_COLS, students: ["Student A", "Student B", "Student C", "Student D"] },
       '8bh': { columns: MATH_COLS, students: ["Student A", "Student B", "Student C", "Student D"] },
       '8ch': { columns: MATH_COLS, students: ["Student X", "Student Y", "Student Z"] }
@@ -1748,7 +1749,6 @@
       printArea.innerHTML = '';
     }
 
-    /* In-Cell Trajectory Sparkline Generator */
     function generateInlineSparkline(percentages) {
       if (!percentages || percentages.length < 2) return '';
       const w = 48, h = 18;
@@ -2558,7 +2558,7 @@
     }
 
     function addStudent() {
-      const name = prompt("Enter student name (e.g. 'Lastname; Firstname'):");
+      const name = prompt("Enter student first name:");
       if (!name) return;
 
       const maxPos = activeStudents.length + 1;
@@ -2576,7 +2576,7 @@
       }
 
       const emptyMarks = new Array(activeColumns.length).fill('');
-      activeStudents.splice(insertIdx, 0, { name: name, notes: '', marks: emptyMarks, ls: { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' } });
+      activeStudents.splice(insertIdx, 0, { name: name.trim(), notes: '', marks: emptyMarks, ls: { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' } });
       renderTable();
       renderLearningSkillsTable();
       triggerAutoSave();
