@@ -1465,39 +1465,87 @@
     }
 
     /* Interactive Rubric Functions with Per-Student Persistence, Half-Marks & PDF Print */
+    function getLabReportColIndex() {
+      const idx = activeColumns.findIndex(c => c.name.toLowerCase().includes('lab report'));
+      return idx !== -1 ? idx : 1;
+    }
+
     function getRubricStateForStudent(st) {
+      // 1. Check saved per-student rubric state object
       if (st.rubric && st.rubric.selections) {
-        return {
-          selections: { ...st.rubric.selections },
-          modifiers: { ...(st.rubric.modifiers || { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 }) }
-        };
+        const sel = {};
+        const mod = {};
+        for (let i = 0; i < 5; i++) {
+          sel[i] = Number(st.rubric.selections[i] || st.rubric.selections[String(i)] || 3);
+          mod[i] = Number(st.rubric.modifiers ? (st.rubric.modifiers[i] ?? st.rubric.modifiers[String(i)] ?? 0) : 0);
+        }
+        return { selections: sel, modifiers: mod };
       }
 
-      // Fallback from existing mark in column 1 (Lab Report #1)
-      const rawMark = (st.marks[1] || '').toString().trim();
-      let baseLvl = 3;
+      // 2. Check if criterion levels were recorded in the student's note string (e.g. "Clarity: L4, Scientific Content: L3+...")
+      const labNote = getAssignmentNote(st.notes, 'Lab Report #1') || '';
+      if (labNote) {
+        const sel = {};
+        const mod = {};
+        let foundAny = false;
+        RUBRIC_DATA.forEach((item, rIdx) => {
+          const rx = new RegExp(item.criterion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*:\\s*L([1-4])([+-])?', 'i');
+          const m = labNote.match(rx);
+          if (m) {
+            foundAny = true;
+            sel[rIdx] = parseInt(m[1], 10);
+            mod[rIdx] = m[2] === '+' ? 0.35 : (m[2] === '-' ? -0.35 : 0);
+          } else {
+            sel[rIdx] = 3;
+            mod[rIdx] = 0;
+          }
+        });
+        if (foundAny) {
+          return { selections: sel, modifiers: mod };
+        }
+      }
+
+      // 3. Reconstruct accurate criterion levels matching the student's existing mark in the Lab Report column
+      const colIdx = getLabReportColIndex();
+      const colMax = (activeColumns[colIdx] && activeColumns[colIdx].max) ? activeColumns[colIdx].max : 20;
+      const rawMark = (st.marks[colIdx] || '').toString().trim();
+
+      let targetScoreOutOf20 = 15; // default Level 3
       if (rawMark !== '') {
         if (LEVEL_MAP[rawMark] !== undefined) {
-          const pct = LEVEL_MAP[rawMark];
-          if (pct >= 90) baseLvl = 4;
-          else if (pct >= 70) baseLvl = 3;
-          else if (pct >= 60) baseLvl = 2;
-          else baseLvl = 1;
+          targetScoreOutOf20 = (LEVEL_MAP[rawMark] / 100) * 20;
         } else {
           const num = parseFloat(rawMark);
           if (!isNaN(num)) {
-            if (num >= 18) baseLvl = 4;
-            else if (num >= 14.5) baseLvl = 3;
-            else if (num >= 12) baseLvl = 2;
-            else baseLvl = 1;
+            targetScoreOutOf20 = (num / colMax) * 20;
           }
         }
       }
 
-      return {
-        selections: { 0: baseLvl, 1: baseLvl, 2: baseLvl, 3: baseLvl, 4: baseLvl },
-        modifiers: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 }
-      };
+      // Distribute targetScoreOutOf20 across 5 criteria (1..4) so the printed grid matches their actual grade
+      const clampedTotal = Math.max(5, Math.min(20, Math.round(targetScoreOutOf20 * 2) / 2));
+      const wholeTarget = Math.floor(clampedTotal);
+      const hasHalf = (clampedTotal - wholeTarget) >= 0.4;
+
+      const base = Math.max(1, Math.min(4, Math.floor(wholeTarget / 5)));
+      let remainder = wholeTarget - (base * 5);
+
+      const sel = { 0: base, 1: base, 2: base, 3: base, 4: base };
+      const mod = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+
+      for (let i = 0; i < 5 && remainder > 0; i++) {
+        if (sel[i] < 4) {
+          sel[i]++;
+          remainder--;
+        }
+      }
+      if (hasHalf) {
+        // Apply +0.35 modifier on two criteria (rounds to +0.5 total)
+        mod[0] = 0.35;
+        mod[1] = 0.35;
+      }
+
+      return { selections: sel, modifiers: mod };
     }
 
     function openRubricModal(sIdx) {
@@ -1584,7 +1632,7 @@
     }
 
     function saveCurrentRubricToStudent() {
-      if (activeRubricStudentIdx === null) return;
+      if (activeRubricStudentIdx === null || !activeStudents[activeRubricStudentIdx]) return;
       activeStudents[activeRubricStudentIdx].rubric = {
         selections: { ...rubricSelections },
         modifiers: { ...rubricModifiers }
@@ -1638,28 +1686,33 @@
       }
 
       const st = activeStudents[activeRubricStudentIdx];
-      st.marks[1] = totalScore.toString();
+      const labColIdx = getLabReportColIndex();
+      st.marks[labColIdx] = totalScore.toString();
 
-      const rubricNote = `Lab Report #1: L${ontLvl} (${summaryParts.join(', ')})`;
+      const colTitle = (activeColumns[labColIdx] && activeColumns[labColIdx].name) ? activeColumns[labColIdx].name : 'Lab Report #1';
+      const rubricNote = `${colTitle}: L${ontLvl} (${summaryParts.join(', ')})`;
       let curNotes = st.notes || '';
-      if (!curNotes.includes('Lab Report #1')) {
+      const escapedTitle = colTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const noteRegex = new RegExp(`${escapedTitle}\\s*:[^;|\\n]*`, 'i');
+
+      if (!noteRegex.test(curNotes)) {
         curNotes = curNotes ? `${curNotes}; ${rubricNote}` : rubricNote;
       } else {
-        curNotes = curNotes.replace(/Lab Report #1\s*:[^;|\n]*/i, rubricNote);
+        curNotes = curNotes.replace(noteRegex, rubricNote);
       }
       st.notes = curNotes;
 
       renderTable();
       triggerAutoSave();
       closeRubricModal();
-      alert(`Applied score of ${totalScore}/20 (Level ${ontLvl}) to ${st.name} for Lab Report #1!`);
+      alert(`Applied score of ${totalScore}/20 (Level ${ontLvl}) to ${st.name} for ${colTitle}!`);
     }
 
     /* Print Formatted PDF Rubric with Guaranteed Wrapping */
     function generateSingleRubricCardHTML(st, curSelections, curModifiers, isLast) {
       let total = 0;
       for (let i = 0; i < 5; i++) {
-        total += (curSelections[i] || 3) + (curModifiers[i] || 0);
+        total += Number(curSelections[i] || 3) + Number(curModifiers[i] || 0);
       }
       const totalScore = Math.round(total * 2) / 2;
       const pct = (totalScore / 20) * 100;
@@ -1667,8 +1720,8 @@
 
       let tableRowsHtml = '';
       RUBRIC_DATA.forEach((item, rIdx) => {
-        const selLvl = curSelections[rIdx] || 3;
-        const mod = curModifiers[rIdx] || 0;
+        const selLvl = Number(curSelections[rIdx] || 3);
+        const mod = Number(curModifiers[rIdx] || 0);
         let modStr = mod > 0 ? ' (+)' : (mod < 0 ? ' (-)' : '');
 
         tableRowsHtml += `
@@ -1693,7 +1746,9 @@
         `;
       });
 
-      const noteText = getAssignmentNote(st.notes, 'Lab Report #1') || 'Demonstrated solid grasp of scientific methods and formatting.';
+      const labColIdx = getLabReportColIndex();
+      const colTitle = (activeColumns[labColIdx] && activeColumns[labColIdx].name) ? activeColumns[labColIdx].name : 'Lab Report #1';
+      const noteText = getAssignmentNote(st.notes, colTitle) || 'Demonstrated solid grasp of scientific methods and formatting.';
 
       return `
         <div class="rubric-single-page ${!isLast ? 'print-page-break' : ''}" style="width: 100%; max-width: 100%; box-sizing: border-box; margin: 0 auto; padding: 0 4px; font-family: -apple-system, sans-serif; color: #0f172a;">
@@ -1755,13 +1810,14 @@
 
     function printRubricPDF(isBatch) {
       saveCurrentRubricToStudent();
+      persistLocal();
       const printArea = document.getElementById('printableReportArea');
       let finalHtml = '';
 
       if (isBatch) {
         activeStudents.forEach((st, idx) => {
           const state = (idx === activeRubricStudentIdx)
-            ? { selections: rubricSelections, modifiers: rubricModifiers }
+            ? { selections: { ...rubricSelections }, modifiers: { ...rubricModifiers } }
             : getRubricStateForStudent(st);
 
           const isLast = (idx === activeStudents.length - 1);
@@ -1819,6 +1875,10 @@
 
     function updateMark(studentIdx, colIdx, val) {
       activeStudents[studentIdx].marks[colIdx] = val.trim();
+      if (colIdx === getLabReportColIndex()) {
+        // Clear stale rubric selection cache if teacher manually overrides mark in cell
+        activeStudents[studentIdx].rubric = null;
+      }
       recalculate();
       triggerAutoSave();
     }
@@ -2402,7 +2462,7 @@
 
       activeStudents.forEach((st, sIdx) => {
         st.marks[colIdx] = '';
-        if (colIdx === 1) st.rubric = null;
+        if (colIdx === getLabReportColIndex()) st.rubric = null;
         const inputEl = document.querySelector(`input.mark-cell[data-row="${sIdx}"][data-col="${colIdx}"]`);
         if (inputEl) inputEl.value = '';
       });
@@ -2440,6 +2500,7 @@
 
           let cleanVal = cellVal.trim().replace(/\/.*$/, '').trim();
           activeStudents[targetRow].marks[targetCol] = cleanVal;
+          if (targetCol === getLabReportColIndex()) activeStudents[targetRow].rubric = null;
 
           const inputEl = document.querySelector(`input.mark-cell[data-row="${targetRow}"][data-col="${targetCol}"]`);
           if (inputEl) inputEl.value = cleanVal;
@@ -2460,6 +2521,7 @@
         if (rIdx < activeStudents.length) {
           let cleanVal = line.trim().replace(/\/.*$/, '').trim();
           activeStudents[rIdx].marks[colIdx] = cleanVal;
+          if (colIdx === getLabReportColIndex()) activeStudents[rIdx].rubric = null;
           const inputEl = document.querySelector(`input.mark-cell[data-row="${rIdx}"][data-col="${colIdx}"]`);
           if (inputEl) inputEl.value = cleanVal;
         }
