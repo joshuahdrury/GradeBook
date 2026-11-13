@@ -422,7 +422,6 @@
         page-break-inside: avoid;
         break-inside: avoid;
       }
-      /* Prevent lateral table spillover & enforce wrapping */
       .print-table {
         width: 100% !important;
         border-collapse: collapse !important;
@@ -897,7 +896,6 @@
       { name: "Check-in", max: 10, weight: 20, category: "C", expectation: "clarity in written and visual explanations" }
     ];
 
-    // Student Rosters showing ONLY first names
     const DEFAULT_CLASSES = {
       '6av': { columns: GENERIC_6_COLS, students: ["Student 1", "Student 2", "Student 3"] },
       '6bv': { columns: GENERIC_6_COLS, students: ["Student 1", "Student 2", "Student 3"] },
@@ -1082,7 +1080,8 @@
             name: st.name,
             notes: (st.notes !== undefined && st.notes !== null) ? st.notes : '',
             marks: st.marks,
-            ls: st.ls || { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' }
+            ls: st.ls || { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' },
+            rubric: st.rubric || null
           }));
           renderTable();
           renderLearningSkillsTable();
@@ -1092,11 +1091,11 @@
         activeColumns = JSON.parse(JSON.stringify(cls.columns));
         activeStudents = cls.students.map(st => {
           if (typeof st === 'string') {
-            return { name: st, notes: '', marks: new Array(activeColumns.length).fill(''), ls: { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' } };
+            return { name: st, notes: '', marks: new Array(activeColumns.length).fill(''), ls: { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' }, rubric: null };
           } else {
             const filled = [...st.marks];
             while (filled.length < activeColumns.length) filled.push('');
-            return { name: st.name, notes: st.notes || '', marks: filled, ls: st.ls || { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' } };
+            return { name: st.name, notes: st.notes || '', marks: filled, ls: st.ls || { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' }, rubric: st.rubric || null };
           }
         });
         renderTable();
@@ -1192,10 +1191,14 @@
           : '';
 
         let existingLs = { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' };
+        let existingRubric = null;
         const found = activeStudents.find(s => s.name === studentName);
-        if (found && found.ls) existingLs = found.ls;
+        if (found) {
+          if (found.ls) existingLs = found.ls;
+          if (found.rubric) existingRubric = found.rubric;
+        }
 
-        newStudents.push({ name: studentName, notes: notes, marks: marks, ls: existingLs });
+        newStudents.push({ name: studentName, notes: notes, marks: marks, ls: existingLs, rubric: existingRubric });
       }
 
       if (newCols.length > 0 && newStudents.length > 0) {
@@ -1461,7 +1464,42 @@
       triggerAutoSave();
     }
 
-    /* Interactive Rubric Functions with Half-Marks & PDF Print */
+    /* Interactive Rubric Functions with Per-Student Persistence, Half-Marks & PDF Print */
+    function getRubricStateForStudent(st) {
+      if (st.rubric && st.rubric.selections) {
+        return {
+          selections: { ...st.rubric.selections },
+          modifiers: { ...(st.rubric.modifiers || { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 }) }
+        };
+      }
+
+      // Fallback from existing mark in column 1 (Lab Report #1)
+      const rawMark = (st.marks[1] || '').toString().trim();
+      let baseLvl = 3;
+      if (rawMark !== '') {
+        if (LEVEL_MAP[rawMark] !== undefined) {
+          const pct = LEVEL_MAP[rawMark];
+          if (pct >= 90) baseLvl = 4;
+          else if (pct >= 70) baseLvl = 3;
+          else if (pct >= 60) baseLvl = 2;
+          else baseLvl = 1;
+        } else {
+          const num = parseFloat(rawMark);
+          if (!isNaN(num)) {
+            if (num >= 18) baseLvl = 4;
+            else if (num >= 14.5) baseLvl = 3;
+            else if (num >= 12) baseLvl = 2;
+            else baseLvl = 1;
+          }
+        }
+      }
+
+      return {
+        selections: { 0: baseLvl, 1: baseLvl, 2: baseLvl, 3: baseLvl, 4: baseLvl },
+        modifiers: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 }
+      };
+    }
+
     function openRubricModal(sIdx) {
       activeRubricStudentIdx = sIdx !== undefined ? sIdx : 0;
       const modal = document.getElementById('rubricModal');
@@ -1493,15 +1531,9 @@
       const st = activeStudents[activeRubricStudentIdx];
       document.getElementById('rubricStudentTarget').textContent = `Target: ${st.name} — Class ${currentClassKey.toUpperCase()}`;
 
-      const labMark = parseFloat(st.marks[1] || '16');
-      let baseLvl = 3;
-      if (labMark >= 18) baseLvl = 4;
-      else if (labMark >= 15) baseLvl = 3;
-      else if (labMark >= 13) baseLvl = 2;
-      else baseLvl = 1;
-
-      rubricSelections = { 0: baseLvl, 1: baseLvl, 2: baseLvl, 3: baseLvl, 4: baseLvl };
-      rubricModifiers = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+      const state = getRubricStateForStudent(st);
+      rubricSelections = state.selections;
+      rubricModifiers = state.modifiers;
 
       renderRubricTable();
       updateRubricScoreDisplay();
@@ -1551,14 +1583,24 @@
       });
     }
 
+    function saveCurrentRubricToStudent() {
+      if (activeRubricStudentIdx === null) return;
+      activeStudents[activeRubricStudentIdx].rubric = {
+        selections: { ...rubricSelections },
+        modifiers: { ...rubricModifiers }
+      };
+    }
+
     function selectRubricLevel(criterionIdx, level) {
       rubricSelections[criterionIdx] = level;
+      saveCurrentRubricToStudent();
       renderRubricTable();
       updateRubricScoreDisplay();
     }
 
     function setRubricModifier(criterionIdx, modVal) {
       rubricModifiers[criterionIdx] = modVal;
+      saveCurrentRubricToStudent();
       renderRubricTable();
       updateRubricScoreDisplay();
     }
@@ -1582,6 +1624,7 @@
 
     function applyRubricGrade() {
       if (activeRubricStudentIdx === null) return;
+      saveCurrentRubricToStudent();
       const totalScore = calculateTotalRubricScore();
       const pct = (totalScore / 20) * 100;
       const ontLvl = getOntarioLevel(pct);
@@ -1711,30 +1754,18 @@
     }
 
     function printRubricPDF(isBatch) {
+      saveCurrentRubricToStudent();
       const printArea = document.getElementById('printableReportArea');
       let finalHtml = '';
 
       if (isBatch) {
         activeStudents.forEach((st, idx) => {
-          let sSelections = { 0: 3, 1: 3, 2: 3, 3: 3, 4: 3 };
-          let sModifiers = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
-
-          const markVal = parseFloat(st.marks[1] || '16');
-          let baseLvl = 3;
-          if (markVal >= 18) baseLvl = 4;
-          else if (markVal >= 15) baseLvl = 3;
-          else if (markVal >= 13) baseLvl = 2;
-          else baseLvl = 1;
-
-          sSelections = { 0: baseLvl, 1: baseLvl, 2: baseLvl, 3: baseLvl, 4: baseLvl };
-
-          if (idx === activeRubricStudentIdx) {
-            sSelections = rubricSelections;
-            sModifiers = rubricModifiers;
-          }
+          const state = (idx === activeRubricStudentIdx)
+            ? { selections: rubricSelections, modifiers: rubricModifiers }
+            : getRubricStateForStudent(st);
 
           const isLast = (idx === activeStudents.length - 1);
-          finalHtml += generateSingleRubricCardHTML(st, sSelections, sModifiers, isLast);
+          finalHtml += generateSingleRubricCardHTML(st, state.selections, state.modifiers, isLast);
         });
       } else {
         if (activeRubricStudentIdx === null) return;
@@ -2371,6 +2402,7 @@
 
       activeStudents.forEach((st, sIdx) => {
         st.marks[colIdx] = '';
+        if (colIdx === 1) st.rubric = null;
         const inputEl = document.querySelector(`input.mark-cell[data-row="${sIdx}"][data-col="${colIdx}"]`);
         if (inputEl) inputEl.value = '';
       });
@@ -2576,7 +2608,7 @@
       }
 
       const emptyMarks = new Array(activeColumns.length).fill('');
-      activeStudents.splice(insertIdx, 0, { name: name.trim(), notes: '', marks: emptyMarks, ls: { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' } });
+      activeStudents.splice(insertIdx, 0, { name: name.trim(), notes: '', marks: emptyMarks, ls: { R: '-', O: '-', IN: '-', C: '-', I: '-', S: '-' }, rubric: null });
       renderTable();
       renderLearningSkillsTable();
       triggerAutoSave();
